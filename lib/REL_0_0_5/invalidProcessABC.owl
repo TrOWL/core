@@ -1,0 +1,828 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY owl2xml "http://www.w3.org/2006/12/owl2-xml#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+    <!ENTITY processrefinement "http://www.most.org/guidance/processrefinement.owl#" >
+]>
+
+
+<rdf:RDF xmlns="http://www.most.org/guidance/processrefinement.owl#"
+     xml:base="http://www.most.org/guidance/processrefinement.owl"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl2xml="http://www.w3.org/2006/12/owl2-xml#"
+     xmlns:processrefinement="http://www.most.org/guidance/processrefinement.owl#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <owl:Ontology rdf:about=""/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#compose -->
+
+    <owl:ObjectProperty rdf:about="#compose"/>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#from -->
+
+    <owl:ObjectProperty rdf:about="#from"/>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#to -->
+
+    <owl:ObjectProperty rdf:about="#to"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#AssignApplicanttoVacancy -->
+
+    <owl:Class rdf:about="#AssignApplicanttoVacancy">
+        <rdfs:subClassOf rdf:resource="#ClosureAssignApplicanttoVacancy"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#from"/>
+                <owl:someValuesFrom rdf:resource="#SelectApplicant"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#to"/>
+                <owl:someValuesFrom rdf:resource="#InterviewApproval"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <owl:disjointWith rdf:resource="#ComponentAssignApplicanttoVacancy"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#ClosureAssignApplicanttoVacancy -->
+
+    <owl:Class rdf:about="#ClosureAssignApplicanttoVacancy">
+        <rdfs:subClassOf rdf:resource="&owl;Thing"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#compose"/>
+                <owl:someValuesFrom rdf:resource="#HR-Approval"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#ClosureHR-Approval -->
+
+    <owl:Class rdf:about="#ClosureHR-Approval">
+        <rdfs:subClassOf rdf:resource="&owl;Thing"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#compose"/>
+                <owl:someValuesFrom rdf:resource="#HR-Process"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#ClosureHR-Process -->
+
+    <owl:Class rdf:about="#ClosureHR-Process"/>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#ClosureHiring -->
+
+    <owl:Class rdf:about="#ClosureHiring">
+        <rdfs:subClassOf rdf:resource="&owl;Thing"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#compose"/>
+                <owl:someValuesFrom rdf:resource="#HR-Process"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#ClosureInterview-Approval -->
+
+    <owl:Class rdf:about="#ClosureInterview-Approval">
+        <rdfs:subClassOf rdf:resource="&owl;Thing"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#compose"/>
+                <owl:someValuesFrom rdf:resource="#HR-Process"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#ClosureRejectApplicant -->
+
+    <owl:Class rdf:about="#ClosureRejectApplicant">
+        <rdfs:subClassOf rdf:resource="&owl;Thing"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#compose"/>
+                <owl:someValuesFrom rdf:resource="#HR-Approval"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#ClosureSelectApplicant -->
+
+    <owl:Class rdf:about="#ClosureSelectApplicant">
+        <rdfs:subClassOf rdf:resource="&owl;Thing"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#compose"/>
+                <owl:someValuesFrom rdf:resource="#HR-Approval"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#ClosureSendLetterofRejection -->
+
+    <owl:Class rdf:about="#ClosureSendLetterofRejection">
+        <rdfs:subClassOf rdf:resource="&owl;Thing"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#compose"/>
+                <owl:someValuesFrom rdf:resource="#HR-Approval"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#ComponentAssignApplicanttoVacancy -->
+
+    <owl:Class rdf:about="#ComponentAssignApplicanttoVacancy">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#compose"/>
+                <owl:someValuesFrom rdf:resource="#AssignApplicanttoVacancy"/>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="#ClosureAssignApplicanttoVacancy"/>
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Invalid"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#to"/>
+                        <owl:allValuesFrom>
+                            <owl:Class>
+                                <owl:unionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#ClosureInterview-Approval"/>
+                                    <rdf:Description rdf:about="#ComponentAssignApplicanttoVacancy"/>
+                                </owl:unionOf>
+                            </owl:Class>
+                        </owl:allValuesFrom>
+                    </owl:Restriction>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Invalid"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#from"/>
+                        <owl:allValuesFrom>
+                            <owl:Class>
+                                <owl:unionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#ClosureSelectApplicant"/>
+                                    <rdf:Description rdf:about="#ComponentAssignApplicanttoVacancy"/>
+                                </owl:unionOf>
+                            </owl:Class>
+                        </owl:allValuesFrom>
+                    </owl:Restriction>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#ComponentHR-Approval -->
+
+    <owl:Class rdf:about="#ComponentHR-Approval">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#compose"/>
+                <owl:someValuesFrom rdf:resource="#HR-Approval"/>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="#ClosureHR-Approval"/>
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Invalid"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#to"/>
+                        <owl:allValuesFrom>
+                            <owl:Class>
+                                <owl:unionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#ClosureInterview-Approval"/>
+                                    <rdf:Description rdf:about="#ComponentHR-Approval"/>
+                                </owl:unionOf>
+                            </owl:Class>
+                        </owl:allValuesFrom>
+                    </owl:Restriction>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Invalid"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#from"/>
+                        <owl:allValuesFrom>
+                            <owl:Class>
+                                <owl:unionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#ComponentHR-Approval"/>
+                                    <rdf:Description rdf:about="#Start"/>
+                                </owl:unionOf>
+                            </owl:Class>
+                        </owl:allValuesFrom>
+                    </owl:Restriction>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <owl:disjointWith rdf:resource="#HR-Approval"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#ComponentHR-Process -->
+
+    <owl:Class rdf:about="#ComponentHR-Process">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#compose"/>
+                <owl:someValuesFrom rdf:resource="#HR-Process"/>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="#ClosureHR-Process"/>
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Invalid"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#to"/>
+                        <owl:allValuesFrom>
+                            <owl:Class>
+                                <owl:unionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#ComponentHR-Process"/>
+                                    <rdf:Description rdf:about="#End"/>
+                                </owl:unionOf>
+                            </owl:Class>
+                        </owl:allValuesFrom>
+                    </owl:Restriction>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Invalid"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#from"/>
+                        <owl:allValuesFrom>
+                            <owl:Class>
+                                <owl:unionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#ComponentHR-Process"/>
+                                    <rdf:Description rdf:about="#Start"/>
+                                </owl:unionOf>
+                            </owl:Class>
+                        </owl:allValuesFrom>
+                    </owl:Restriction>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <owl:disjointWith rdf:resource="#HR-Process"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#ComponentHiring -->
+
+    <owl:Class rdf:about="#ComponentHiring">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#compose"/>
+                <owl:someValuesFrom rdf:resource="#Hiring"/>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="#ClosureHiring"/>
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Invalid"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#to"/>
+                        <owl:allValuesFrom>
+                            <owl:Class>
+                                <owl:unionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#ComponentHiring"/>
+                                    <rdf:Description rdf:about="#End"/>
+                                </owl:unionOf>
+                            </owl:Class>
+                        </owl:allValuesFrom>
+                    </owl:Restriction>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Invalid"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#from"/>
+                        <owl:allValuesFrom>
+                            <owl:Class>
+                                <owl:unionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#ClosureInterview-Approval"/>
+                                    <rdf:Description rdf:about="#ComponentHiring"/>
+                                </owl:unionOf>
+                            </owl:Class>
+                        </owl:allValuesFrom>
+                    </owl:Restriction>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <owl:disjointWith rdf:resource="#Hiring"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#ComponentInterviewApproval -->
+
+    <owl:Class rdf:about="#ComponentInterviewApproval">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#compose"/>
+                <owl:someValuesFrom rdf:resource="#InterviewApproval"/>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="#ClosureInterview-Approval"/>
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Invalid"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#to"/>
+                        <owl:allValuesFrom>
+                            <owl:Class>
+                                <owl:unionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#ClosureHiring"/>
+                                    <rdf:Description rdf:about="#ComponentInterviewApproval"/>
+                                    <rdf:Description rdf:about="#End"/>
+                                </owl:unionOf>
+                            </owl:Class>
+                        </owl:allValuesFrom>
+                    </owl:Restriction>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Invalid"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#from"/>
+                        <owl:allValuesFrom>
+                            <owl:Class>
+                                <owl:unionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#ClosureHR-Approval"/>
+                                    <rdf:Description rdf:about="#ComponentInterviewApproval"/>
+                                </owl:unionOf>
+                            </owl:Class>
+                        </owl:allValuesFrom>
+                    </owl:Restriction>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <owl:disjointWith rdf:resource="#InterviewApproval"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#ComponentRejectApplicant -->
+
+    <owl:Class rdf:about="#ComponentRejectApplicant">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#compose"/>
+                <owl:someValuesFrom rdf:resource="#RejectApplicant"/>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="#ClosureRejectApplicant"/>
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Invalid"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#from"/>
+                        <owl:allValuesFrom>
+                            <owl:Class>
+                                <owl:unionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#ClosureSelectApplicant"/>
+                                    <rdf:Description rdf:about="#ComponentRejectApplicant"/>
+                                </owl:unionOf>
+                            </owl:Class>
+                        </owl:allValuesFrom>
+                    </owl:Restriction>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Invalid"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#to"/>
+                        <owl:allValuesFrom>
+                            <owl:Class>
+                                <owl:unionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#ClosureSendLetterofRejection"/>
+                                    <rdf:Description rdf:about="#ComponentRejectApplicant"/>
+                                </owl:unionOf>
+                            </owl:Class>
+                        </owl:allValuesFrom>
+                    </owl:Restriction>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <owl:disjointWith rdf:resource="#RejectApplicant"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#ComponentSelectApplicant -->
+
+    <owl:Class rdf:about="#ComponentSelectApplicant">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#compose"/>
+                <owl:someValuesFrom rdf:resource="#SelectApplicant"/>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="#ClosureSelectApplicant"/>
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Invalid"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#from"/>
+                        <owl:allValuesFrom>
+                            <owl:Class>
+                                <owl:unionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#ComponentSelectApplicant"/>
+                                    <rdf:Description rdf:about="#Start"/>
+                                </owl:unionOf>
+                            </owl:Class>
+                        </owl:allValuesFrom>
+                    </owl:Restriction>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Invalid"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#to"/>
+                        <owl:allValuesFrom>
+                            <owl:Class>
+                                <owl:unionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#ClosureAssignApplicanttoVacancy"/>
+                                    <rdf:Description rdf:about="#ClosureRejectApplicant"/>
+                                    <rdf:Description rdf:about="#ComponentSelectApplicant"/>
+                                </owl:unionOf>
+                            </owl:Class>
+                        </owl:allValuesFrom>
+                    </owl:Restriction>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <owl:disjointWith rdf:resource="#SelectApplicant"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#ComponentSendLetterofRejection -->
+
+    <owl:Class rdf:about="#ComponentSendLetterofRejection">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#compose"/>
+                <owl:someValuesFrom rdf:resource="#SendLetterofRejection"/>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="#ClosureSendLetterofRejection"/>
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Invalid"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#from"/>
+                        <owl:allValuesFrom>
+                            <owl:Class>
+                                <owl:unionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#ClosureRejectApplicant"/>
+                                    <rdf:Description rdf:about="#ComponentSendLetterofRejection"/>
+                                </owl:unionOf>
+                            </owl:Class>
+                        </owl:allValuesFrom>
+                    </owl:Restriction>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Invalid"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#to"/>
+                        <owl:allValuesFrom>
+                            <owl:Class>
+                                <owl:unionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#ComponentSendLetterofRejection"/>
+                                    <rdf:Description rdf:about="#End"/>
+                                </owl:unionOf>
+                            </owl:Class>
+                        </owl:allValuesFrom>
+                    </owl:Restriction>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <owl:disjointWith rdf:resource="#SendLetterofRejection"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#End -->
+
+    <owl:Class rdf:about="#End">
+        <rdfs:subClassOf rdf:resource="&owl;Thing"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#HR-Approval -->
+
+    <owl:Class rdf:about="#HR-Approval">
+        <rdfs:subClassOf rdf:resource="#ClosureHR-Approval"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#to"/>
+                <owl:someValuesFrom rdf:resource="#InterviewApproval"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#from"/>
+                <owl:someValuesFrom rdf:resource="#Start"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#HR-Process -->
+
+    <owl:Class rdf:about="#HR-Process">
+        <rdfs:subClassOf rdf:resource="#ClosureHR-Process"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#from"/>
+                <owl:someValuesFrom rdf:resource="#Start"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#to"/>
+                <owl:someValuesFrom rdf:resource="#End"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#Hiring -->
+
+    <owl:Class rdf:about="#Hiring">
+        <rdfs:subClassOf rdf:resource="#ClosureHiring"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#to"/>
+                <owl:someValuesFrom rdf:resource="#End"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#from"/>
+                <owl:someValuesFrom rdf:resource="#InterviewApproval"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#InterviewApproval -->
+
+    <owl:Class rdf:about="#InterviewApproval">
+        <rdfs:subClassOf rdf:resource="#ClosureInterview-Approval"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#from"/>
+                <owl:someValuesFrom rdf:resource="#HR-Approval"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#to"/>
+                <owl:someValuesFrom rdf:resource="#Hiring"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#from"/>
+                <owl:someValuesFrom rdf:resource="#AssignApplicanttoVacancy"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#to"/>
+                <owl:someValuesFrom rdf:resource="#End"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#Invalid -->
+
+    <owl:Class rdf:about="#Invalid">
+        <rdfs:subClassOf rdf:resource="&owl;Thing"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#RejectApplicant -->
+
+    <owl:Class rdf:about="#RejectApplicant">
+        <rdfs:subClassOf rdf:resource="#ClosureRejectApplicant"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#from"/>
+                <owl:someValuesFrom rdf:resource="#SelectApplicant"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#to"/>
+                <owl:someValuesFrom rdf:resource="#SendLetterofRejection"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#SelectApplicant -->
+
+    <owl:Class rdf:about="#SelectApplicant">
+        <rdfs:subClassOf rdf:resource="#ClosureSelectApplicant"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#from"/>
+                <owl:someValuesFrom rdf:resource="#Start"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#to"/>
+                        <owl:someValuesFrom rdf:resource="#AssignApplicanttoVacancy"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#to"/>
+                        <owl:someValuesFrom rdf:resource="#RejectApplicant"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#SendLetterofRejection -->
+
+    <owl:Class rdf:about="#SendLetterofRejection">
+        <rdfs:subClassOf rdf:resource="#ClosureSendLetterofRejection"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#from"/>
+                <owl:someValuesFrom rdf:resource="#RejectApplicant"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="#to"/>
+                <owl:someValuesFrom rdf:resource="#End"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.most.org/guidance/processrefinement.owl#Start -->
+
+    <owl:Class rdf:about="#Start">
+        <rdfs:subClassOf rdf:resource="&owl;Thing"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.w3.org/2002/07/owl#Thing -->
+
+    <owl:Class rdf:about="&owl;Thing"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // General axioms
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <rdf:Description>
+        <rdf:type rdf:resource="&owl;AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="#ClosureHR-Process"/>
+            <rdf:Description rdf:about="#End"/>
+            <rdf:Description rdf:about="#Start"/>
+        </owl:members>
+    </rdf:Description>
+    <rdf:Description>
+        <rdf:type rdf:resource="&owl;AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="#ClosureHR-Approval"/>
+            <rdf:Description rdf:about="#ClosureHiring"/>
+            <rdf:Description rdf:about="#ClosureInterview-Approval"/>
+        </owl:members>
+    </rdf:Description>
+    <rdf:Description>
+        <rdf:type rdf:resource="&owl;AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="#ClosureAssignApplicanttoVacancy"/>
+            <rdf:Description rdf:about="#ClosureRejectApplicant"/>
+            <rdf:Description rdf:about="#ClosureSelectApplicant"/>
+            <rdf:Description rdf:about="#ClosureSendLetterofRejection"/>
+        </owl:members>
+    </rdf:Description>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 2.2.1.913) http://owlapi.sourceforge.net -->
+

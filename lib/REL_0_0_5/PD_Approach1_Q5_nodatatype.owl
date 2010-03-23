@@ -1,0 +1,686 @@
+Namespace: pd <http://www.comarch.com/oss/pd.owl#>
+Namespace: rdfs <http://www.w3.org/2000/01/rdf-schema#>
+Namespace: owl2xml <http://www.w3.org/2006/12/owl2-xml#>
+Namespace: owl <http://www.w3.org/2002/07/owl#>
+Namespace: xsd <http://www.w3.org/2001/XMLSchema#>
+Namespace: rdf <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+
+
+Ontology: <http://www.comarch.com/oss/pd.owl>
+
+ObjectProperty: hasSlot
+
+    Characteristics: 
+        InverseFunctional
+    
+    Domain: 
+        Configuration
+    
+    Range: 
+        Slot
+    
+    
+
+
+
+ObjectProperty: hasCard
+
+    Characteristics: 
+        Functional,
+        InverseFunctional
+    
+    Domain: 
+        Slot
+    
+    Range: 
+        Card
+    
+    
+
+
+
+ObjectProperty: hasID
+
+    Characteristics: 
+        Functional
+    
+    Domain: 
+        Slot
+    
+    
+
+
+
+ObjectProperty: hasConfiguration
+
+    Characteristics: 
+        InverseFunctional
+    
+    Domain: 
+        Chassis
+    
+    Range: 
+        Configuration
+    
+    
+
+
+
+Class: OtherCards
+
+    SubClassOf: 
+        Card
+    
+    DisjointWith: 
+        Supervisors,
+        SPA_interface_processors,
+        Hot_Swappable_OSM
+    
+    
+
+
+
+Class: SPA_interface_processors
+
+    SubClassOf: 
+        Card
+    
+    DisjointWith: 
+        OtherCards,
+        Supervisors
+    
+    
+
+
+
+Class: Cisco7603Configuration
+
+    EquivalentTo: 
+        Configuration
+        and (hasSlot some ((hasCard some Supervisors)
+        and (hasID value id1)))
+        and (hasSlot only (((hasCard some Supervisors)
+        and (hasID value id1))
+        or ((hasCard some (Hot_Swappable_OSM
+        or OtherCards
+        or SPA_interface_processors))
+        and (hasID value id3))
+        or ((hasCard some (Hot_Swappable_OSM
+        or Supervisors))
+        and (hasID value id2))))
+        and (hasSlot exactly 3 Slot)
+    
+    SubClassOf: 
+        ((hasSlot some (hasCard some Hot_Swappable_OSM))
+        and (hasSlot some (hasCard some Supervisor_engine_720)))
+        or (hasSlot only (hasCard only (not (Hot_Swappable_OSM))))
+    
+    
+
+
+
+Class: Slot_Test_3
+
+    EquivalentTo: 
+        Card
+        and (not ( inv (hasCard) value cisco11_slot_3))
+    
+    
+
+
+
+Class: Cisco7602Configuration
+
+    EquivalentTo: 
+        Configuration
+        and (hasSlot some ((hasCard some Supervisors)
+        and (hasID value id1)))
+        and (hasSlot only (((hasCard some Supervisors)
+        and (hasID value id1))
+        or (((hasCard some Supervisors)
+        and (hasID value id2))
+        or ((hasCard some (OtherCards
+        or SPA_interface_processors))
+        and (hasID value id2)))))
+        and (hasSlot exactly 2 Slot)
+    
+    SubClassOf: 
+        ((hasSlot some (hasCard some Hot_Swappable_OSM))
+        and (hasSlot some (hasCard some Supervisor_engine_720)))
+        or (hasSlot only (hasCard only (not (Hot_Swappable_OSM))))
+    
+    
+
+
+
+Class: Slot
+
+    DisjointWith: 
+        Card
+    
+    
+
+
+
+Class: Cisco7603
+
+    EquivalentTo: 
+        hasConfiguration exactly 1 Cisco7603Configuration
+    
+    SubClassOf: 
+        Chassis
+    
+    
+
+
+
+Class: Configuration
+
+    DisjointWith: 
+        Card
+    
+    
+
+
+
+Class: Hottie
+
+    SubClassOf: 
+        Hot_Swappable_OSM
+    
+    
+
+
+
+Class: Card
+
+    DisjointWith: 
+        Chassis,
+        Slot,
+        Configuration
+    
+    
+
+
+
+Class: Supervisors
+
+    SubClassOf: 
+        Card
+    
+    DisjointWith: 
+        OtherCards,
+        SPA_interface_processors
+    
+    
+
+
+
+Class: SPA_by_KM
+
+    SubClassOf: 
+        SPA_interface_processors
+    
+    
+
+
+
+Class: Chassis
+
+    DisjointWith: 
+        Card
+    
+    
+
+
+
+Class: Hot_Swappable_OSM_Test
+
+    EquivalentTo: 
+        SPA_interface_processors
+        and ( inv (hasCard) value cisco11_slot_3)
+    
+    
+
+
+
+Class: Supervisor_engine_2
+
+    SubClassOf: 
+        Supervisors
+    
+    DisjointWith: 
+        Supervisor_engine_720
+    
+    
+
+
+
+Class: Hot_Swappable_OSM
+
+    SubClassOf: 
+        Card
+    
+    DisjointWith: 
+        OtherCards
+    
+    
+
+
+
+Class: Supervisor_engine_720
+
+    SubClassOf: 
+        Supervisors
+    
+    DisjointWith: 
+        Supervisor_engine_2
+    
+    
+
+
+
+Class: ID
+
+    
+
+
+
+Individual: cisco11_slot_2
+
+    Types: 
+        Slot
+    
+    Facts: 
+        hasCard  supervisor_2_2,
+        hasID  id2
+    
+    DifferentFrom: 
+        HS_OSM_1,
+        H_OSM_2,
+        cisco11,
+        cisco11_slot_1,
+        cisco11_slot_3,
+        spa_1,
+        spa_2,
+        storage,
+        supervisor_2_1,
+        supervisor_2_2,
+        supervisor_2_3,
+        supervisor_720_1,
+        supervisor_720_3
+    
+    
+
+
+
+Individual: cisco11_slot_1
+
+    Types: 
+        Slot
+    
+    Facts: 
+        hasCard  supervisor_2_1,
+        hasID  id1
+    
+    DifferentFrom: 
+        HS_OSM_1,
+        H_OSM_2,
+        cisco11,
+        cisco11_slot_2,
+        cisco11_slot_3,
+        spa_1,
+        spa_2,
+        storage,
+        supervisor_2_1,
+        supervisor_2_2,
+        supervisor_2_3,
+        supervisor_720_1,
+        supervisor_720_3
+    
+    
+
+
+
+Individual: supervisor_720_3
+
+    Types: 
+        Supervisor_engine_720
+    
+    DifferentFrom: 
+        HS_OSM_1,
+        H_OSM_2,
+        cisco11,
+        cisco11_slot_1,
+        cisco11_slot_2,
+        cisco11_slot_3,
+        spa_1,
+        spa_2,
+        storage,
+        supervisor_2_1,
+        supervisor_2_2,
+        supervisor_2_3,
+        supervisor_720_1
+    
+    
+
+
+
+Individual: supervisor_2_3
+
+    Types: 
+        Supervisor_engine_2
+    
+    DifferentFrom: 
+        HS_OSM_1,
+        H_OSM_2,
+        cisco11,
+        cisco11_slot_1,
+        cisco11_slot_2,
+        cisco11_slot_3,
+        spa_1,
+        spa_2,
+        storage,
+        supervisor_2_1,
+        supervisor_2_2,
+        supervisor_720_1,
+        supervisor_720_3
+    
+    
+
+
+
+Individual: supervisor_2_1
+
+    Types: 
+        Supervisor_engine_2
+    
+    DifferentFrom: 
+        HS_OSM_1,
+        H_OSM_2,
+        cisco11,
+        cisco11_slot_1,
+        cisco11_slot_2,
+        cisco11_slot_3,
+        spa_1,
+        spa_2,
+        storage,
+        supervisor_2_2,
+        supervisor_2_3,
+        supervisor_720_1,
+        supervisor_720_3
+    
+    
+
+
+
+Individual: id2
+
+    Types: 
+        ID
+    
+    DifferentFrom: 
+        id1,
+        id3
+    
+    
+
+
+
+Individual: spa_2
+
+    Types: 
+        SPA_by_KM
+    
+    DifferentFrom: 
+        HS_OSM_1,
+        H_OSM_2,
+        cisco11,
+        cisco11_slot_1,
+        cisco11_slot_2,
+        cisco11_slot_3,
+        spa_1,
+        storage,
+        supervisor_2_1,
+        supervisor_2_2,
+        supervisor_2_3,
+        supervisor_720_1,
+        supervisor_720_3
+    
+    
+
+
+
+Individual: spa_1
+
+    Types: 
+        SPA_by_KM
+    
+    DifferentFrom: 
+        HS_OSM_1,
+        H_OSM_2,
+        cisco11,
+        cisco11_slot_1,
+        cisco11_slot_2,
+        cisco11_slot_3,
+        spa_2,
+        storage,
+        supervisor_2_1,
+        supervisor_2_2,
+        supervisor_2_3,
+        supervisor_720_1,
+        supervisor_720_3
+    
+    
+
+
+
+Individual: supervisor_2_2
+
+    Types: 
+        Supervisor_engine_2
+    
+    DifferentFrom: 
+        HS_OSM_1,
+        H_OSM_2,
+        cisco11,
+        cisco11_slot_1,
+        cisco11_slot_2,
+        cisco11_slot_3,
+        spa_1,
+        spa_2,
+        storage,
+        supervisor_2_1,
+        supervisor_2_3,
+        supervisor_720_1,
+        supervisor_720_3
+    
+    
+
+
+
+Individual: cisco11
+
+    Types: 
+        Cisco7603Configuration
+    
+    Facts: 
+        hasSlot  cisco11_slot_1,
+        hasSlot  cisco11_slot_2,
+        hasSlot  cisco11_slot_3
+    
+    DifferentFrom: 
+        HS_OSM_1,
+        H_OSM_2,
+        cisco11_slot_1,
+        cisco11_slot_2,
+        cisco11_slot_3,
+        spa_1,
+        spa_2,
+        storage,
+        supervisor_2_1,
+        supervisor_2_2,
+        supervisor_2_3,
+        supervisor_720_1,
+        supervisor_720_3
+    
+    
+
+
+
+Individual: storage
+
+    Types: 
+        Configuration
+    
+    DifferentFrom: 
+        HS_OSM_1,
+        H_OSM_2,
+        cisco11,
+        cisco11_slot_1,
+        cisco11_slot_2,
+        cisco11_slot_3,
+        spa_1,
+        spa_2,
+        supervisor_2_1,
+        supervisor_2_2,
+        supervisor_2_3,
+        supervisor_720_1,
+        supervisor_720_3
+    
+    
+
+
+
+Individual: id1
+
+    Types: 
+        ID
+    
+    DifferentFrom: 
+        id2,
+        id3
+    
+    
+
+
+
+Individual: cisco11_slot_3
+
+    Types: 
+        Slot
+    
+    Facts: 
+        hasCard  supervisor_2_3,
+        hasID  id3
+    
+    DifferentFrom: 
+        HS_OSM_1,
+        H_OSM_2,
+        cisco11,
+        cisco11_slot_1,
+        cisco11_slot_2,
+        spa_1,
+        spa_2,
+        storage,
+        supervisor_2_1,
+        supervisor_2_2,
+        supervisor_2_3,
+        supervisor_720_1,
+        supervisor_720_3
+    
+    
+
+
+
+Individual: HS_OSM_1
+
+    Types: 
+        Hottie
+    
+    DifferentFrom: 
+        H_OSM_2,
+        cisco11,
+        cisco11_slot_1,
+        cisco11_slot_2,
+        cisco11_slot_3,
+        spa_1,
+        spa_2,
+        storage,
+        supervisor_2_1,
+        supervisor_2_2,
+        supervisor_2_3,
+        supervisor_720_1,
+        supervisor_720_3
+    
+    
+
+
+
+Individual: id3
+
+    Types: 
+        ID
+    
+    DifferentFrom: 
+        id1,
+        id2
+    
+    
+
+
+
+Individual: supervisor_720_1
+
+    Types: 
+        Supervisor_engine_720
+    
+    DifferentFrom: 
+        HS_OSM_1,
+        H_OSM_2,
+        cisco11,
+        cisco11_slot_1,
+        cisco11_slot_2,
+        cisco11_slot_3,
+        spa_1,
+        spa_2,
+        storage,
+        supervisor_2_1,
+        supervisor_2_2,
+        supervisor_2_3,
+        supervisor_720_3
+    
+    
+
+
+
+Individual: H_OSM_2
+
+    Types: 
+        Hottie
+    
+    DifferentFrom: 
+        HS_OSM_1,
+        cisco11,
+        cisco11_slot_1,
+        cisco11_slot_2,
+        cisco11_slot_3,
+        spa_1,
+        spa_2,
+        storage,
+        supervisor_2_1,
+        supervisor_2_2,
+        supervisor_2_3,
+        supervisor_720_1,
+        supervisor_720_3
+    
+    
+
+
+
+DisjointClasses: 
+    Hot_Swappable_OSM,
+    SPA_interface_processors,
+    Supervisors
+
