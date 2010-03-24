@@ -17,11 +17,13 @@ public class Node<T> implements Set<T> {
     private Set<Node<T>> children;
     private Set<Node<T>> parents;
     private Set<T> contents;
+//    private Set<T> hiddenContents;
 
     public Node() {
         children = new HashSet<Node<T>>();
         parents = new HashSet<Node<T>>();
         contents = new HashSet<T>();
+ //       hiddenContents = new HashSet<T>();
     }
 
     public <T> T[] toArray(T[] a) {
@@ -69,7 +71,6 @@ public class Node<T> implements Set<T> {
     }
 
     public boolean contains(Object o) {
-
         return contents.contains(o);
         
     }
@@ -110,7 +111,7 @@ public class Node<T> implements Set<T> {
         return ascendants;
     }
 
-    public void getAscendants(Set<Node<T>> ascendants, Node<T> current) {
+    private void getAscendants(Set<Node<T>> ascendants, Node<T> current) {
         ascendants.add(current);
         for (Node<T> parent: current.getParents()) {
             if (!ascendants.contains(parent))
@@ -124,7 +125,7 @@ public class Node<T> implements Set<T> {
         return descendants;
     }
 
-    public void getDescendants(Set<Node<T>> descendants, Node<T> current) {
+    private void getDescendants(Set<Node<T>> descendants, Node<T> current) {
         descendants.add(current);
         for (Node<T> child: current.getChildren()) {
             if (!descendants.contains(child))

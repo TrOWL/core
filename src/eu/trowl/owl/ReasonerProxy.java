@@ -390,9 +390,4 @@ public class ReasonerProxy extends ReasonerBase {
     public Set<OWLClass> classifyIndividual(OWLIndividual i) {
         return use.classifyIndividual(i);
     }
-
-    public OWLOntology getOntology() {
-        return use.getOntology();
-    }
-
 }

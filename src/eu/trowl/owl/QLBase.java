@@ -4,7 +4,7 @@
  */
 package eu.trowl.owl;
 
-import java.util.HashMap;
+import eu.trowl.util.*;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -15,7 +15,6 @@ import org.semanticweb.owl.model.*;
  * @author ed
  */
 public abstract class QLBase extends ReasonerBase {
-
     /**
      *
      */
@@ -44,11 +43,17 @@ public abstract class QLBase extends ReasonerBase {
     protected Map<Node<OWLDataProperty>, Set<Pair<Set<OWLIndividual>,OWLConstant>>> dpInstances;
     protected Set<OWLClass> classes;
     protected Set<OWLObjectProperty> objectProperties;
+    protected Set<Node<OWLObjectProperty>> symmetricProperties;
+    protected Set<Node<OWLObjectProperty>> asymmetricProperties;
+    protected Set<Node<OWLObjectProperty>> reflexiveProperties;
+    protected Set<Node<OWLObjectProperty>> irreflexiveProperties;
+
     protected Set<OWLDataProperty> dataProperties;
 //    protected Set<OWLAnnotationProperty> annotationProperties;
     protected Set<OWLIndividual> individuals;
 
     protected Map<OWLIndividual, Set<OWLIndividual>> sameMap;
+    protected Map<OWLIndividual, Set<OWLIndividual>> differentMap;
     protected Node<OWLClass> thing;
     protected Node<OWLClass> nothing;
     protected Node<OWLObjectProperty> topObjectProperty;
@@ -61,21 +66,53 @@ public abstract class QLBase extends ReasonerBase {
     protected Set<Node<OWLDataProperty>> dataPropertyNodes;
 
     protected Map<Node<OWLClass>, Set<Node<OWLClass>>> classDisjunctions;
+    protected Map<Node<OWLObjectProperty>, Set<Node<OWLObjectProperty>>> objectPropertyDisjunctions;
+    protected Map<Node<OWLDataProperty>, Set<Node<OWLDataProperty>>> dataPropertyDisjunctions;
+
+    protected Map<Node<OWLObjectProperty>, Set<Node<OWLClass>>> opDomainMap;
+    protected Map<Node<OWLObjectProperty>, Set<Node<OWLClass>>> opRangeMap;
+    protected Map<Node<OWLDataProperty>, Set<Node<OWLClass>>> dpDomainMap;
+    protected Map<Node<OWLDataProperty>, Set<OWLDataRange>> dpRangeMap;
 
     public QLBase() {
         super();
+    }
 
-        classNodeMap = new HashMap<OWLClass, Node<OWLClass>>();
-        objectPropertyNodeMap = new HashMap<OWLObjectProperty, Node<OWLObjectProperty>>();
-        dataPropertyNodeMap = new HashMap<OWLDataProperty, Node<OWLDataProperty>>();
-        abox = new HashMap<Node<OWLClass>, Set<Set<OWLIndividual>>>();
-        types  = new HashMap<Set<OWLIndividual>, Set<Node<OWLClass>>>();
-        classDisjunctions = new HashMap<Node<OWLClass>, Set<Node<OWLClass>>>();
-        classNodes = new HashSet<Node<OWLClass>>();
-        objectPropertyNodes = new HashSet<Node<OWLObjectProperty>>();
-        dataPropertyNodes = new HashSet<Node<OWLDataProperty>>();
-        sameMap = new HashMap<OWLIndividual, Set<OWLIndividual>>();
-        
+    protected void setupDataStructures() {
+        classNodeMap = Types.newMap();
+        objectPropertyNodeMap = Types.newMap();
+        dataPropertyNodeMap = Types.newMap();
+        abox = Types.newMap();
+        types  = Types.newMap();
+        classDisjunctions = Types.newMap();
+        classNodes = Types.newSet();
+        objectPropertyNodes = Types.newSet();
+        dataPropertyNodes = Types.newSet();
+        sameMap = Types.newMap();
+        objectProperties = Types.newSet();
+        reflexiveProperties = Types.newSet();
+        symmetricProperties = Types.newSet();
+        irreflexiveProperties = Types.newSet();
+        asymmetricProperties = Types.newSet();
+    }
+
+    protected <T> Set<Set<T>> toSetSet (Set<Node<T>> in) {
+        Set<Set<T>> out = Types.newSet();
+        for (Node<T> n: in) {
+            out.add(n); // stupid lousy type inference...
+        }
+        return out;
+    }
+
+    protected Set<Set<OWLDescription>> castInnerSetToDescription(Set<Set<OWLClass>> in) {
+        Set<Set<OWLDescription>> out = Types.newSet();
+        for (Set<OWLClass> inner: in) {
+            Set<OWLDescription> newinner = Types.newSet();
+            for (OWLClass obj: inner) {
+                newinner.add((OWLDescription) obj);
+            }
+        }
+        return out;
     }
 
     protected Node<OWLClass> getNode(OWLClass c) {
@@ -91,7 +128,7 @@ public abstract class QLBase extends ReasonerBase {
     protected Set<OWLIndividual> getBag(OWLIndividual i) {
         if (sameMap.containsKey(i))
             return sameMap.get(i);
-        Set<OWLIndividual> bag = new HashSet<OWLIndividual>();
+        Set<OWLIndividual> bag = Types.newSet();
         bag.add(i);
         sameMap.put(i, bag);
         //classNodes.add(bag);
@@ -128,12 +165,51 @@ public abstract class QLBase extends ReasonerBase {
 
     protected <A, B> void addToMapList(Map<A, Set<B>> m, A a, Set<B> b) {
         if (!m.containsKey(a)) {
-            m.put(a, new HashSet<B>());
+            m.put(a, b);
+        } else {
+            m.get(a).addAll(b);
         }
-        m.get(a).addAll(b);
     }
 
     protected void addDisjunction(OWLClass a, OWLClass b) {
+        Node an = getNode(a);
+        Node bn = getNode(b);
+
+        if (objectPropertyDisjunctions.containsKey(an)) {
+            objectPropertyDisjunctions.get(an).add(bn);
+            objectPropertyDisjunctions.get(bn).addAll(objectPropertyDisjunctions.get(an));
+        } else if (objectPropertyDisjunctions.containsKey(bn)) {
+            objectPropertyDisjunctions.get(bn).add(an);
+            objectPropertyDisjunctions.get(an).addAll(objectPropertyDisjunctions.get(an));
+        } else {
+            Set<Node<OWLObjectProperty>> d = Types.newSet();
+            d.add(bn);
+            d.add(an);
+            objectPropertyDisjunctions.put(an, d);
+            objectPropertyDisjunctions.put(bn, d);
+        }
+    }
+
+    protected void addDisjunction(OWLDataProperty a, OWLDataProperty b) {
+        Node an = getNode(a);
+        Node bn = getNode(b);
+
+        if (dataPropertyDisjunctions.containsKey(an)) {
+            dataPropertyDisjunctions.get(an).add(bn);
+            dataPropertyDisjunctions.get(bn).addAll(dataPropertyDisjunctions.get(an));
+        } else if (objectPropertyDisjunctions.containsKey(bn)) {
+            dataPropertyDisjunctions.get(bn).add(an);
+            dataPropertyDisjunctions.get(an).addAll(dataPropertyDisjunctions.get(an));
+        } else {
+            Set<Node<OWLDataProperty>> d = Types.newSet();
+            d.add(bn);
+            d.add(an);
+            dataPropertyDisjunctions.put(an, d);
+            dataPropertyDisjunctions.put(bn, d);
+        }
+    }
+
+    protected void addDisjunction(OWLObjectProperty a, OWLObjectProperty b) {
         Node an = getNode(a);
         Node bn = getNode(b);
 
@@ -152,39 +228,5 @@ public abstract class QLBase extends ReasonerBase {
         }
     }
 
-    class Pair<T1, T2> {
-
-        T1 first;
-        T2 second;
-
-        public Pair(T1 first, T2 second) {
-            this.first = first;
-            this.second = second;
-        }
-
-        public T1 getFirst() {
-            return first;
-        }
-
-        public void setFirst(T1 first) {
-            this.first = first;
-        }
-
-        public T2 getSecond() {
-            return second;
-        }
-
-        public void setSecond(T2 second) {
-            this.second = second;
-        }
-
-        public boolean contains(T1 candidate) {
-            return (candidate == first || candidate == second);
-        }
-
-        @Override
-        public String toString() {
-            return first.toString() + ", " + second.toString();
-        }
-    }
+    
 }

@@ -209,7 +209,6 @@ public interface Reasoner extends OWLReasoner {
      */
     public OWLOntologyManager getManager();
     public OWLDataFactory getDataFactory();
-    public OWLOntology getOntology();
     public Object getUnderlyingReasoner();
     /* ADD NEW:
      * addClass(OwlNamedClass))

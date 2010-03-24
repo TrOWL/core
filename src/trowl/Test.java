@@ -8,11 +8,10 @@ package trowl;
 import eu.trowl.owl.QLReasoner;
 import eu.trowl.owl.Reasoner;
 import eu.trowl.owl.ReasonerFactory;
-import eu.trowl.query.Query;
-import eu.trowl.query.QueryException;
-import eu.trowl.query.QueryFactory;
+import eu.trowl.query.*;
 import java.net.URI;
 import java.util.logging.Logger;
+import org.semanticweb.owl.inference.OWLReasoner;
 import org.semanticweb.owl.model.OWLClass;
 import org.semanticweb.owl.model.OWLOntology;
 
@@ -32,13 +31,18 @@ public class Test {
         ReasonerFactory rf = new ReasonerFactory();
         rf.setType(QLReasoner.class);
         Reasoner r = rf.load(new URI("file:/RO.owl"));
-        r.consistent();
+        //r.consistent();
 
         for (OWLOntology o: r.getManager().getOntologies()) {
             for (OWLClass c: o.getReferencedClasses()) {
-                System.out.println(c+"  " + r.getDescendantClasses(c));
+                System.out.println(c+"  " + r.getAncestorClasses(c));
             }
         }
+
+        r.store("test");
+        eu.trowl.query.Query q = QueryFactory.create("SELECT * WHERE {?x a <owl:Thing> . NOT {?x a <eg:Person.}}}");
+        ResultSet rs = q.execute("test");
+        
     }
 
 }

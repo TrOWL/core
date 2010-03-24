@@ -7,6 +7,8 @@ package eu.trowl.owl;
 import com.clarkparsia.owlapi.OWL;
 import eu.trowl.db.DB;
 import eu.trowl.hashing.FNV;
+import eu.trowl.util.Pair;
+import eu.trowl.util.Types;
 import eu.trowl.vocab.OWLRDF;
 import eu.trowl.vocab.OWLRDF;
 import java.net.URI;
@@ -34,20 +36,25 @@ import org.semanticweb.owl.model.OWLDataProperty;
 import org.semanticweb.owl.model.OWLDataPropertyAssertionAxiom;
 import org.semanticweb.owl.model.OWLDataPropertyExpression;
 import org.semanticweb.owl.model.OWLDataRange;
+import org.semanticweb.owl.model.OWLDataSubPropertyAxiom;
 import org.semanticweb.owl.model.OWLDescription;
+import org.semanticweb.owl.model.OWLDisjointDataPropertiesAxiom;
+import org.semanticweb.owl.model.OWLDisjointObjectPropertiesAxiom;
 import org.semanticweb.owl.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owl.model.OWLIndividual;
 import org.semanticweb.owl.model.OWLObjectComplementOf;
 import org.semanticweb.owl.model.OWLObjectProperty;
 import org.semanticweb.owl.model.OWLOntology;
 import org.semanticweb.owl.model.OWLOntologyChangeException;
-import org.semanticweb.owl.model.OWLOntologyCreationException;
 import org.semanticweb.owl.model.OWLOntologyManager;
 import org.semanticweb.owl.model.OWLSubClassAxiom;
 import org.semanticweb.owl.model.OWLObjectIntersectionOf;
 import org.semanticweb.owl.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owl.model.OWLObjectPropertyExpression;
+import org.semanticweb.owl.model.OWLObjectPropertyInverse;
 import org.semanticweb.owl.model.OWLObjectSomeRestriction;
+import org.semanticweb.owl.model.OWLObjectSubPropertyAxiom;
+import org.semanticweb.owl.model.OWLPropertyExpression;
 import org.semanticweb.owl.model.OWLSubPropertyAxiom;
 import org.semanticweb.owl.model.OWLSameIndividualsAxiom;
 
@@ -66,7 +73,7 @@ public class QLReasoner extends QLBase implements Reasoner {
         thing = getNode(manager.getOWLDataFactory().getOWLClass(OWLRDF.THING));
         nothing = getNode(manager.getOWLDataFactory().getOWLClass(OWLRDF.NOTHING));
 
-        for (OWLOntology ont : manager.getOntologies()) {
+        for (OWLOntology ont : onts) {
             for (OWLSubClassAxiom ax : ont.getAxioms(AxiomType.SUBCLASS)) {
                 OWLDescription lhs = ax.getSubClass();
                 OWLDescription rhs = ax.getSuperClass();
@@ -130,51 +137,106 @@ public class QLReasoner extends QLBase implements Reasoner {
         topObjectProperty = getNode(manager.getOWLDataFactory().getOWLObjectProperty(OWLRDF.TOP_OBJECT_PROPERTY));
         topDataProperty = getNode(manager.getOWLDataFactory().getOWLDataProperty(OWLRDF.TOP_DATA_PROPERTY));
 
-        for (OWLOntology ont : manager.getOntologies()) {
-            for (OWLSubPropertyAxiom ax : ont.getAxioms(AxiomType.SUB_OBJECT_PROPERTY)) {
-                OWLObjectProperty superprop;
-                OWLObjectProperty subprop;
-                if (!ax.getSubProperty().isAnonymous() &&
-                        !ax.getSuperProperty().isAnonymous()) {
-                    subprop = (OWLObjectProperty) ax.getSubProperty();
-                    superprop = (OWLObjectProperty) ax.getSuperProperty();
+        for (OWLOntology ont : onts) {
+
+            for (OWLObjectSubPropertyAxiom ax : ont.getAxioms(AxiomType.SUB_OBJECT_PROPERTY)) {
+                try {
+                    OWLObjectProperty superprop;
+                    OWLObjectProperty subprop;
+                    if (ax.getSubProperty().isAnonymous()) {
+                        subprop = name(ax.getSubProperty());
+                    } else {
+                        subprop = (OWLObjectProperty) ax.getSubProperty();
+                    }
+                    if (ax.getSuperProperty().isAnonymous()) {
+                        superprop = name(ax.getSubProperty());
+                    } else {
+                        superprop = (OWLObjectProperty) ax.getSuperProperty();
+                    }
                     getNode(superprop).addChild(getNode(subprop));
+                } catch (NotExpressibleException ex) {
                 }
             }
 
-            for (OWLSubPropertyAxiom ax : ont.getAxioms(AxiomType.SUB_DATA_PROPERTY)) {
+            for (OWLDisjointObjectPropertiesAxiom ax : ont.getAxioms(AxiomType.DISJOINT_OBJECT_PROPERTIES)) {
+                try {
+                    Set<OWLObjectProperty> disjunction = Types.newSet();
+                    for (OWLObjectPropertyExpression ope : ax.getProperties()) {
+                        OWLObjectProperty op = name(ope);
+                        disjunction.add(op);
+                    }
+                    for (OWLObjectProperty op : disjunction) {
+                        for (OWLObjectProperty op1 : disjunction) {
+                            if (!op.equals(op1)) {
+                                addDisjunction(op, op1);
+                            }
+                        }
+                    }
+                } catch (NotExpressibleException ex) {
+                    log.info(ex.getMessage());
+                }
+            }
+
+            for (OWLDataSubPropertyAxiom ax : ont.getAxioms(AxiomType.SUB_DATA_PROPERTY)) {
                 OWLDataProperty superprop;
                 OWLDataProperty subprop;
+
                 if (!ax.getSubProperty().isAnonymous() &&
                         !ax.getSuperProperty().isAnonymous()) {
-                    subprop = (OWLDataProperty) ax.getSubProperty();
-                    superprop = (OWLDataProperty) ax.getSuperProperty();
-                    getNode(superprop).addChild(getNode(subprop));
+                    try {
+                        subprop = name(ax.getSubProperty());
+                        superprop = name(ax.getSuperProperty());
+                        getNode(superprop).addChild(getNode(subprop));
+                    } catch (NotExpressibleException ex) {
+                        // technically unreachable with current vesion of OWL, but hey, future proof ;)
+                        log.info(ex.getMessage());
+                    }
+                }
+            }
+
+            for (OWLDisjointDataPropertiesAxiom ax : ont.getAxioms(AxiomType.DISJOINT_DATA_PROPERTIES)) {
+                try {
+                    Set<OWLDataProperty> disjunction = Types.newSet();
+                    for (OWLDataPropertyExpression dpe : ax.getProperties()) {
+                        OWLDataProperty dp = name(dpe);
+                        disjunction.add(dp);
+                    }
+                    for (OWLDataProperty dp : disjunction) {
+                        for (OWLDataProperty dp1 : disjunction) {
+                            if (!dp.equals(dp1)) {
+                                addDisjunction(dp, dp1);
+                            }
+                        }
+                    }
+                } catch (NotExpressibleException ex) {
+                    log.info(ex.getMessage());
                 }
             }
         }
-
         for (Node<OWLDataProperty> node : dataPropertyNodes) {
             if (node.getParents().isEmpty()) {
                 topDataProperty.addChild(node);
             }
+
         }
 
         for (Node<OWLObjectProperty> node : objectPropertyNodes) {
             if (node.getParents().isEmpty()) {
                 topObjectProperty.addChild(node);
             }
+
         }
     }
 
     private void loadABox() {
-        for (OWLOntology ont : manager.getOntologies()) {
+        for (OWLOntology ont : onts) {
             for (OWLClass c : ont.getReferencedClasses()) {
                 for (OWLClassAssertionAxiom ax : ont.getClassAssertionAxioms(c)) {
                     OWLIndividual i = ax.getIndividual();
                     addToMapList(abox, getNode(c), getBag(i));
                     addToMapList(types, getBag(i), getNode(c));
                 }
+
             }
 
             for (OWLIndividual subject : ont.getReferencedIndividuals()) {
@@ -184,6 +246,7 @@ public class QLReasoner extends QLBase implements Reasoner {
                     if (!predicate.isAnonymous()) {
                         OWLObjectProperty p = predicate.asOWLObjectProperty();
                     }
+
                 }
 
                 // might as well grab out data properties for this individual as well
@@ -193,13 +256,14 @@ public class QLReasoner extends QLBase implements Reasoner {
                     if (!predicate.isAnonymous()) {
                         OWLDataProperty p = predicate.asOWLDataProperty();
                     }
+
                 }
             }
         }
     }
 
     private void normaliseIntersections() throws OWLOntologyChangeException {
-        for (OWLOntology ont : manager.getOntologies()) {
+        for (OWLOntology ont : onts) {
             for (OWLEquivalentClassesAxiom ax : ont.getAxioms(AxiomType.EQUIVALENT_CLASSES)) {
                 ont.getClassAxioms();
 
@@ -209,7 +273,7 @@ public class QLReasoner extends QLBase implements Reasoner {
     }
 
     private void normaliseEquivalentClasses() throws OWLOntologyChangeException {
-        for (OWLOntology ont : manager.getOntologies()) {
+        for (OWLOntology ont : onts) {
             for (OWLEquivalentClassesAxiom ax : ont.getAxioms(AxiomType.EQUIVALENT_CLASSES)) {
                 Node<OWLClass> n = new Node<OWLClass>();
                 for (OWLDescription e1 : ax.getDescriptions()) {
@@ -222,23 +286,26 @@ public class QLReasoner extends QLBase implements Reasoner {
                             if (c2 != null && !c1.equals(c2)) {
                                 classNodeMap.put(c1, n);
                             }
+
                         }
                     } catch (NotExpressibleException ex) {
                         log.info(ex.getMessage());
                     }
+
                 }
             }
         }
     }
 
     private void normaliseSameAs() throws OWLOntologyChangeException {
-        for (OWLOntology ont : manager.getOntologies()) {
+        for (OWLOntology ont : onts) {
             for (OWLSameIndividualsAxiom ax : ont.getAxioms(AxiomType.SAME_INDIVIDUAL)) {
                 Set<OWLIndividual> sameBag = new HashSet<OWLIndividual>();
                 sameBag.addAll(ax.getIndividuals());
                 for (OWLIndividual ind : ax.getIndividuals()) {
                     getBag(ind).addAll(sameBag);
                 }
+
             }
         }
     }
@@ -250,6 +317,7 @@ public class QLReasoner extends QLBase implements Reasoner {
                     if (a.hasDescendant(b) && b.hasDescendant(a)) {
                         Node.mergeNodes(a, b);
                     }
+
                 }
             }
         }
@@ -262,6 +330,7 @@ public class QLReasoner extends QLBase implements Reasoner {
                     if (a.hasDescendant(b) && b.hasDescendant(a)) {
                         Node.mergeNodes(a, b);
                     }
+
                 }
             }
         }
@@ -274,6 +343,7 @@ public class QLReasoner extends QLBase implements Reasoner {
                     if (a.hasDescendant(b) && b.hasDescendant(a)) {
                         Node.mergeNodes(a, b);
                     }
+
                 }
             }
         }
@@ -287,8 +357,24 @@ public class QLReasoner extends QLBase implements Reasoner {
         for (OWLDescription c : in.getOperands()) {
             if (c.isAnonymous()) {
                 if (c.getClass().isAssignableFrom(OWLObjectIntersectionOf.class)) {
-                    flattenIntersection((OWLObjectIntersectionOf) c, bag);
+                    flattenIntersection(
+                            (OWLObjectIntersectionOf) c, bag);
                 } else if (in.getClass().isAssignableFrom(OWLObjectSomeRestriction.class)) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     try {
                         bag.add(name((OWLObjectSomeRestriction) in));
                     } catch (NotExpressibleException ex) {
@@ -300,6 +386,7 @@ public class QLReasoner extends QLBase implements Reasoner {
             } else {
                 bag.add(in.asOWLClass());
             }
+
         }
 
         return bag;
@@ -317,10 +404,11 @@ public class QLReasoner extends QLBase implements Reasoner {
      * @param r
      * @return
      */
-    public OWLClass name(OWLDescription d) throws NotExpressibleException {
+    private OWLClass name(OWLDescription d) throws NotExpressibleException {
         if (!d.isAnonymous()) {
             return d.asOWLClass();
         }
+
         if (d instanceof OWLObjectSomeRestriction) {
             OWLObjectSomeRestriction r = (OWLObjectSomeRestriction) d;
             if (r.getProperty().isAnonymous()) {
@@ -332,12 +420,45 @@ public class QLReasoner extends QLBase implements Reasoner {
                 } catch (URISyntaxException ex) {
                     throw new RuntimeException("Managed to create an invalid URI!");
                 }
+
                 OWLClass newClass =
                         factory.getOWLClass(newClassURI);
                 return newClass;
             }
+
         }
         throw new NotExpressibleException("Class description not expressible in OWL QL: " + d.toString());
+    }
+
+    private OWLDataProperty name(OWLDataPropertyExpression p) throws NotExpressibleException {
+        return p.asOWLDataProperty();
+    }
+
+
+    private OWLObjectProperty name(OWLObjectPropertyExpression p) throws NotExpressibleException {
+        if (!p.isAnonymous()) {
+            return (OWLObjectProperty) p;
+        }
+
+        if (p instanceof OWLObjectPropertyInverse) {
+            OWLObjectSomeRestriction r = (OWLObjectSomeRestriction) p;
+            if (r.getProperty().isAnonymous()) {
+                throw new RuntimeException("Property in someValuesFrom is not named");
+            } else {
+                URI newClassURI;
+                try {
+                    newClassURI = new URI("urn:class:" + FNV.hash32("neg:" + r.getProperty().asOWLObjectProperty().getURI().toString()));
+                } catch (URISyntaxException ex) {
+                    throw new RuntimeException("Managed to create an invalid URI!");
+                }
+
+                OWLObjectProperty newProp =
+                        factory.getOWLObjectProperty(newClassURI);
+                return newProp;
+            }
+
+        }
+        throw new NotExpressibleException("Property description not expressible in OWL QL: " + p.toString());
     }
 
     public void store() {
@@ -360,10 +481,47 @@ public class QLReasoner extends QLBase implements Reasoner {
     private boolean consistencyCheck() {
         //boolean result = true;
 
+        if (getNode(factory.getOWLThing()).contains(factory.getOWLNothing())) {
+            return false;
+        }
+
         for (Node c1 : classDisjunctions.keySet()) {
             for (Node c2 : classDisjunctions.get(c1)) {
                 if (c1 != c2) {
                     if (!Collections.disjoint(getInstances(c1), getInstances(c2))) {
+                        return false;
+                    }
+
+                }
+            }
+        }
+
+        for (Node p : asymmetricProperties) {
+            // asymmetric cannot have a p b and b p a:
+            Set<Pair<Set<OWLIndividual>, Set<OWLIndividual>>> content = opInstances.get(p);
+            for (Pair<Set<OWLIndividual>, Set<OWLIndividual>> pair : content) {
+                if (content.contains(pair.reverse())) {
+                    return false;
+                }
+
+            }
+        }
+
+        for (Node p1 : objectPropertyDisjunctions.keySet()) {
+            for (Node p2 : objectPropertyDisjunctions.get(p1)) {
+                if (!p1.equals(p2)) {
+                    if (!Collections.disjoint(getInstances(p1), getInstances(p2))) {
+                        return false;
+                    }
+
+                }
+            }
+        }
+
+        for (Node p1 : dataPropertyDisjunctions.keySet()) {
+            for (Node p2 : dataPropertyDisjunctions.get(p1)) {
+                if (!p1.equals(p2)) {
+                    if (!Collections.disjoint(getInstances(p1), getInstances(p2))) {
                         return false;
                     }
                 }
@@ -373,29 +531,28 @@ public class QLReasoner extends QLBase implements Reasoner {
         return true;
     }
 
-    private boolean overlap(Collection a, Collection b) {
-        Collection big;
-        Collection small;
+    /*    private boolean overlap(Collection a, Collection b) {
+    Collection big;
+    Collection small;
 
-        if (a.size() > b.size()) {
-            big = a;
-            small =
-                    b;
-        } else {
-            big = b;
-            small = a;
-        }
-
-        for (Object candidate : small) {
-            if (big.contains(candidate)) {
-                return true;
-            }
-
-        }
-
-        return false;
+    if (a.size() > b.size()) {
+    big = a;
+    small =
+    b;
+    } else {
+    big = b;
+    small = a;
     }
 
+    for (Object candidate : small) {
+    if (big.contains(candidate)) {
+    return true;
+    }
+
+    }
+
+    return false;
+    }*/
     public boolean allSatisfiable() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
@@ -405,6 +562,15 @@ public class QLReasoner extends QLBase implements Reasoner {
             return flattenSetOfSets(getSubClasses(factory.getOWLNothing()));
         } catch (OWLReasonerException ex) {
             Logger.getLogger(QLReasoner.class.getName()).log(Level.SEVERE, null, ex);
+
+
+
+
+
+
+
+
+
             return null;
         }
     }
@@ -421,6 +587,7 @@ public class QLReasoner extends QLBase implements Reasoner {
             log.info(ex.getMessage());
             return Collections.EMPTY_SET;
         }
+
     }
 
     public Set<OWLIndividual> getInstances(OWLDescription c) {
@@ -430,11 +597,42 @@ public class QLReasoner extends QLBase implements Reasoner {
             for (OWLClass subc : subClasses) {
                 out.addAll(getDirectInstances(c));
             }
+
             return out;
         } catch (OWLReasonerException ex) {
             Logger.getLogger(QLReasoner.class.getName()).log(Level.SEVERE, null, ex);
+
+
+
+
+
+
+
+
+
             return null;
         }
+    }
+
+    public Set<Pair<OWLIndividual, OWLIndividual>> getInstances(OWLObjectProperty p) {
+        Set<Node<OWLObjectProperty>> subPropertyNodes = getNode(p).getDescendants();
+        Set<Pair<OWLIndividual, OWLIndividual>> out = new HashSet<Pair<OWLIndividual, OWLIndividual>>();
+        for (Node subNode : subPropertyNodes) {
+            for (Pair<Set<OWLIndividual>, Set<OWLIndividual>> pair : opInstances.get(subNode)) {
+                // DO SOMETHING HEREE
+                }
+        }
+        return out;
+    }
+
+    protected Set<Pair<Set<OWLIndividual>, Set<OWLIndividual>>> getInstanceBags(OWLObjectProperty p) {
+        Set<Node<OWLObjectProperty>> subPropertyNodes = getNode(p).getDescendants();
+        Set<Pair<Set<OWLIndividual>, Set<OWLIndividual>>> out = new HashSet<Pair<Set<OWLIndividual>, Set<OWLIndividual>>>();
+        for (Node subNode : subPropertyNodes) {
+            out.addAll(opInstances.get(subNode));
+        }
+
+        return out;
     }
 
     protected Set<OWLIndividual> getInstances(Node<OWLClass> c) {
@@ -443,6 +641,7 @@ public class QLReasoner extends QLBase implements Reasoner {
         for (Node<OWLClass> child : c.getDescendants()) {
             out.addAll(flattenSetOfSets(abox.get(child)));
         }
+
         return out;
     }
 
@@ -451,6 +650,15 @@ public class QLReasoner extends QLBase implements Reasoner {
             return getDirectSubClasses(superclass).contains(subclass) || flattenSetOfSets(getSubClasses(superclass)).contains(subclass);
         } catch (OWLReasonerException ex) {
             Logger.getLogger(QLReasoner.class.getName()).log(Level.SEVERE, null, ex);
+
+
+
+
+
+
+
+
+
             return false;
         }
     }
@@ -522,28 +730,41 @@ public class QLReasoner extends QLBase implements Reasoner {
     }
 
     public void load(OWLOntologyManager input) throws OntologyLoadException {
+        this.manager = input;
+        this.factory = manager.getOWLDataFactory();
+        this.onts = manager.getOntologies();
+        for (OWLOntology o : onts) {
+            this.onts.addAll(manager.getImportsClosure(o));
+        }
+
+        init();
+    }
+
+    private void init() throws OntologyLoadException {
         try {
-            this.manager = input;
-            this.factory = manager.getOWLDataFactory();
-            this.onts = manager.getOntologies();
-            for (OWLOntology o : onts) {
-                this.onts.addAll(manager.getImportsClosure(o));
-            }
+            setupDataStructures();
             normaliseEquivalentClasses();
+
             normaliseSameAs();
 
             loadTBox();
+
             loadRBox();
+
             loadABox();
 
             findAllEquivalentClasses();
+
             findAllEquivalentObjectProperties();
+
             findAllEquivalentDataProperties();
+
         } catch (OWLOntologyChangeException ex) {
             OntologyLoadException ex2 = new OntologyLoadException();
             ex.initCause(ex2);
             throw (ex2);
         }
+
     }
 
     public Class promoteTo() {
@@ -590,10 +811,6 @@ public class QLReasoner extends QLBase implements Reasoner {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public OWLOntology getOntology() {
-        return onts.iterator().next();
-    }
-
     private boolean isQL(OWLDescription d) {
         if (!d.isAnonymous()) {
             return true; // named classes are fine
@@ -605,6 +822,7 @@ public class QLReasoner extends QLBase implements Reasoner {
             } else if (d instanceof OWLObjectSomeRestriction) {
                 return true; // recurse and check the existential
             }
+
         }
 
         return false; // other class descriptions are not allowed
@@ -617,6 +835,7 @@ public class QLReasoner extends QLBase implements Reasoner {
             if (d instanceof OWLObjectSomeRestriction) {
                 return isQL((OWLObjectSomeRestriction) d); // recurse and check the existential
             }
+
         }
 
         return false; // other class descriptions are not allowed
@@ -628,6 +847,7 @@ public class QLReasoner extends QLBase implements Reasoner {
             if (!isQL(c)) {
                 return false;
             }
+
         }
         return true;
     }
@@ -637,6 +857,7 @@ public class QLReasoner extends QLBase implements Reasoner {
         if (d.getFiller().isOWLThing()) {
             return true;
         }
+
         return false;
     }
 
@@ -645,16 +866,31 @@ public class QLReasoner extends QLBase implements Reasoner {
             if (!isQL(c)) {
                 return false;
             }
+
         }
         return true;
     }
 
-    public boolean isConsistent(OWLOntology arg0) throws OWLReasonerException {
-        //why oh why??
-        return false;
+    public boolean isConsistent(OWLOntology ont) throws OWLReasonerException {
+        //why oh why is this passed an ontology??
+        if (!onts.contains(ont)) {
+            loadOntologies(Collections.singleton(ont));
+        }
+
+        return this.consistent();
     }
 
-    public void loadOntologies(Set<OWLOntology> arg0) throws OWLReasonerException {
+    public void loadOntologies(Set<OWLOntology> input) throws OWLReasonerException {
+        for (OWLOntology in : input) {
+            onts.addAll(manager.getImportsClosure(in));
+        }
+
+        try {
+            init();
+        } catch (OntologyLoadException ex) {
+            //throw new OWLReasonerException(ex);
+        }
+
     }
 
     public void classify() throws OWLReasonerException {
@@ -694,6 +930,7 @@ public class QLReasoner extends QLBase implements Reasoner {
         for (OWLOntology ont : onts) {
             this.onts.removeAll(manager.getImportsClosure(ont));
         }
+
     }
 
     public void clearOntologies() throws OWLReasonerException {
@@ -711,10 +948,12 @@ public class QLReasoner extends QLBase implements Reasoner {
             if (getNode(aa).hasDescendant(getNode(bb))) {
                 return true;
             }
+
             return false;
         } catch (NotExpressibleException ex) {
             throw new ReasonerException(ex);
         }
+
     }
 
     public boolean isEquivalentClass(OWLDescription a, OWLDescription b) throws OWLReasonerException {
@@ -730,6 +969,7 @@ public class QLReasoner extends QLBase implements Reasoner {
         for (Node<OWLClass> parent : node.getParents()) {
             out.add(parent.asSet());
         }
+
         return out;
     }
 
@@ -740,6 +980,7 @@ public class QLReasoner extends QLBase implements Reasoner {
         for (Node<OWLClass> parent : node.getAscendants()) {
             out.add(parent.asSet());
         }
+
         return out;
     }
 
@@ -750,6 +991,7 @@ public class QLReasoner extends QLBase implements Reasoner {
         for (Node<OWLClass> child : node.getChildren()) {
             out.add(child.asSet());
         }
+
         return out;
     }
 
@@ -760,6 +1002,7 @@ public class QLReasoner extends QLBase implements Reasoner {
         for (Node<OWLClass> child : node.getDescendants()) {
             out.add(child.asSet());
         }
+
         return out;
     }
 
@@ -772,65 +1015,157 @@ public class QLReasoner extends QLBase implements Reasoner {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public Set<Set<OWLClass>> getTypes(OWLIndividual arg0, boolean arg1) throws OWLReasonerException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public Set<Set<OWLClass>> getTypes(OWLIndividual i, boolean direct) throws OWLReasonerException {
+        Set<Set<OWLClass>> out = Types.newSet();
+        if (!direct) {
+            for (Set<OWLClass> set : types.get(getBag(i))) {
+                out.add(set);
+            }
+
+        } else {
+            for (Node<OWLClass> node : types.get(getBag(i))) {
+                out.add(node);
+                out.addAll(node.getDescendants());
+            }
+
+        }
+
+        return out;
     }
 
-    public Set<OWLIndividual> getIndividuals(OWLDescription arg0, boolean arg1) throws OWLReasonerException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public Set<OWLIndividual> getIndividuals(OWLDescription cd, boolean direct) throws OWLReasonerException {
+        Node<OWLClass> node = getNode(name(cd));
+        Set<OWLIndividual> out = Types.newSet();
+        out =
+                flattenSetOfSets(abox.get(node));
+        if (!direct) {
+            for (Node<OWLClass> descendant : node.getDescendants()) {
+                for (Set<OWLIndividual> bag : abox.get(descendant)) {
+                    out.addAll(bag);
+                }
+
+            }
+        }
+        return out;
     }
 
-    public Map<OWLObjectProperty, Set<OWLIndividual>> getObjectPropertyRelationships(OWLIndividual arg0) throws OWLReasonerException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public Map<OWLObjectProperty, Set<OWLIndividual>> getObjectPropertyRelationships(OWLIndividual i) throws OWLReasonerException {
+        // rather horribly inefficient, fix!
+
+        Set<OWLIndividual> bag = getBag(i);
+        Map<OWLObjectProperty, Set<OWLIndividual>> out = Types.newMap();
+        for (Node<OWLObjectProperty> node : opInstances.keySet()) {
+            boolean sym = symmetricProperties.contains(node);
+            for (Pair<Set<OWLIndividual>, Set<OWLIndividual>> pair : opInstances.get(node)) {
+                if (pair.getFirst().equals(bag)) {
+                    for (OWLObjectProperty p : node) {
+                        addToMapList(out, p, pair.getSecond());
+                    }
+
+                }
+
+                // Symmetric properties go both ways!
+                if (sym && pair.getSecond().equals(bag)) {
+                    for (OWLObjectProperty p : node) {
+                        addToMapList(out, p, pair.getFirst());
+                    }
+
+                }
+            }
+        }
+
+        return out;
     }
 
-    public Map<OWLDataProperty, Set<OWLConstant>> getDataPropertyRelationships(OWLIndividual arg0) throws OWLReasonerException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public Map<OWLDataProperty, Set<OWLConstant>> getDataPropertyRelationships(OWLIndividual i) throws OWLReasonerException {
+        // rather horribly inefficient, fix!
+
+        Set<OWLIndividual> bag = getBag(i);
+        Map<OWLDataProperty, Set<OWLConstant>> out = Types.newMap();
+        for (Node<OWLDataProperty> node : dpInstances.keySet()) {
+            for (Pair<Set<OWLIndividual>, OWLConstant> pair : dpInstances.get(node)) {
+                if (pair.getFirst().equals(bag)) {
+                    for (OWLDataProperty p : node) {
+                        addToMapList(out, p, pair.getSecond());
+                    }
+
+                }
+            }
+        }
+
+        return out;
     }
 
-    public boolean hasType(OWLIndividual arg0, OWLDescription arg1, boolean arg2) throws OWLReasonerException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public boolean hasType(OWLIndividual i, OWLDescription cd, boolean direct) throws OWLReasonerException {
+        OWLClass c = name(cd);
+        Node<OWLClass> node = getNode(c);
+        Set<OWLIndividual> bag = getBag(i);
+        Set<Node<OWLClass>> thistypes = types.get(bag);
+        if (direct) {
+            return thistypes.contains(node);
+        } else {
+            for (Node descendant : node.getDescendants()) {
+                if (thistypes.contains(descendant)) {
+                    return true;
+                }
+
+            }
+            return false;
+        }
+
     }
 
     public boolean hasObjectPropertyRelationship(OWLIndividual i1, OWLObjectPropertyExpression ope, OWLIndividual i2) throws OWLReasonerException {
-        OWLObjectProperty op = ope.asOWLObjectProperty();
-        return (opInstances.get(op).contains(new Pair<OWLIndividual, OWLIndividual>(i1, i2)));
+        Set<OWLIndividual> bag1 = getBag(i1);
+        Set<OWLIndividual> bag2 = getBag(i2);
+        OWLObjectProperty op = name(ope);
+        Node<OWLObjectProperty> node = getNode(op);
+
+        boolean result = false;
+        if (symmetricProperties.contains(node)) {
+            result = getInstanceBags(op).contains(new Pair<Set<OWLIndividual>, Set<OWLIndividual>>(bag2, bag1));
+        }
+
+        result = result || getInstanceBags(op).contains(new Pair<Set<OWLIndividual>, Set<OWLIndividual>>(bag2, bag1));
+        return (result);
     }
 
     public boolean hasDataPropertyRelationship(OWLIndividual i, OWLDataPropertyExpression dpe, OWLConstant val) throws OWLReasonerException {
         OWLDataProperty dp = dpe.asOWLDataProperty();
-        return (dpInstances.get(dp).contains(new Pair<OWLIndividual, OWLConstant>(i, val)));
+        Set<OWLIndividual> bag = getBag(i);
+        Node<OWLDataProperty> node = getNode(dp);
+        return (dpInstances.get(node).contains(new Pair<Set<OWLIndividual>, OWLConstant>(bag, val)));
     }
 
-    public Set<OWLIndividual> getRelatedIndividuals(OWLIndividual arg0, OWLObjectPropertyExpression arg1) throws OWLReasonerException {
+    public Set<OWLIndividual> getRelatedIndividuals(OWLIndividual i, OWLObjectPropertyExpression ope) throws OWLReasonerException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public Set<OWLConstant> getRelatedValues(OWLIndividual arg0, OWLDataPropertyExpression arg1) throws OWLReasonerException {
+    public Set<OWLConstant> getRelatedValues(OWLIndividual i, OWLDataPropertyExpression arg1) throws OWLReasonerException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public Set<Set<OWLObjectProperty>> getSuperProperties(OWLObjectProperty arg0) throws OWLReasonerException {
+    public Set<Set<OWLObjectProperty>> getSuperProperties(OWLObjectProperty op) throws OWLReasonerException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public Set<Set<OWLObjectProperty>> getSubProperties(OWLObjectProperty arg0) throws OWLReasonerException {
+    public Set<Set<OWLObjectProperty>> getSubProperties(OWLObjectProperty op) throws OWLReasonerException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public Set<Set<OWLObjectProperty>> getAncestorProperties(OWLObjectProperty arg0) throws OWLReasonerException {
+    public Set<Set<OWLObjectProperty>> getAncestorProperties(OWLObjectProperty op) throws OWLReasonerException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public Set<Set<OWLObjectProperty>> getDescendantProperties(OWLObjectProperty arg0) throws OWLReasonerException {
+    public Set<Set<OWLObjectProperty>> getDescendantProperties(OWLObjectProperty op) throws OWLReasonerException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public Set<Set<OWLObjectProperty>> getInverseProperties(OWLObjectProperty arg0) throws OWLReasonerException {
+    public Set<Set<OWLObjectProperty>> getInverseProperties(OWLObjectProperty op) throws OWLReasonerException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public Set<OWLObjectProperty> getEquivalentProperties(OWLObjectProperty arg0) throws OWLReasonerException {
+    public Set<OWLObjectProperty> getEquivalentProperties(OWLObjectProperty op) throws OWLReasonerException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -847,55 +1182,55 @@ public class QLReasoner extends QLBase implements Reasoner {
     }
 
     public boolean isInverseFunctional(OWLObjectProperty arg0) throws OWLReasonerException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return false;
     }
 
-    public boolean isSymmetric(OWLObjectProperty arg0) throws OWLReasonerException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public boolean isSymmetric(OWLObjectProperty p) throws OWLReasonerException {
+        return symmetricProperties.contains(getNode(p));
     }
 
-    public boolean isTransitive(OWLObjectProperty arg0) throws OWLReasonerException {
+    public boolean isTransitive(OWLObjectProperty p) throws OWLReasonerException {
         return false; // we do not support transitive properties
     }
 
-    public boolean isReflexive(OWLObjectProperty arg0) throws OWLReasonerException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public boolean isReflexive(OWLObjectProperty p) throws OWLReasonerException {
+        return reflexiveProperties.contains(getNode(p));
     }
 
-    public boolean isIrreflexive(OWLObjectProperty arg0) throws OWLReasonerException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public boolean isIrreflexive(OWLObjectProperty p) throws OWLReasonerException {
+        return irreflexiveProperties.contains(getNode(p));
     }
 
-    public boolean isAntiSymmetric(OWLObjectProperty arg0) throws OWLReasonerException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public boolean isAntiSymmetric(OWLObjectProperty p) throws OWLReasonerException {
+        return asymmetricProperties.contains(getNode(p));
     }
 
-    public Set<Set<OWLDataProperty>> getSuperProperties(OWLDataProperty arg0) throws OWLReasonerException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public Set<Set<OWLDataProperty>> getSuperProperties(OWLDataProperty dp) throws OWLReasonerException {
+        return toSetSet(getNode(dp).getParents());
     }
 
-    public Set<Set<OWLDataProperty>> getSubProperties(OWLDataProperty arg0) throws OWLReasonerException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public Set<Set<OWLDataProperty>> getSubProperties(OWLDataProperty dp) throws OWLReasonerException {
+        return toSetSet(getNode(dp).getChildren());
     }
 
-    public Set<Set<OWLDataProperty>> getAncestorProperties(OWLDataProperty arg0) throws OWLReasonerException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public Set<Set<OWLDataProperty>> getAncestorProperties(OWLDataProperty dp) throws OWLReasonerException {
+        return toSetSet(getNode(dp).getAscendants());
     }
 
-    public Set<Set<OWLDataProperty>> getDescendantProperties(OWLDataProperty arg0) throws OWLReasonerException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public Set<Set<OWLDataProperty>> getDescendantProperties(OWLDataProperty dp) throws OWLReasonerException {
+        return toSetSet(getNode(dp).getDescendants());
     }
 
-    public Set<OWLDataProperty> getEquivalentProperties(OWLDataProperty arg0) throws OWLReasonerException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public Set<OWLDataProperty> getEquivalentProperties(OWLDataProperty dp) throws OWLReasonerException {
+        return getNode(dp);
     }
 
-    public Set<Set<OWLDescription>> getDomains(OWLDataProperty arg0) throws OWLReasonerException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public Set<Set<OWLDescription>> getDomains(OWLDataProperty dp) throws OWLReasonerException {
+        return castInnerSetToDescription(toSetSet(dpDomainMap.get(getNode(dp))));
     }
 
-    public Set<OWLDataRange> getRanges(OWLDataProperty arg0) throws OWLReasonerException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public Set<OWLDataRange> getRanges(OWLDataProperty dp) throws OWLReasonerException {
+        return dpRangeMap.get(getNode(dp));
     }
 
     public boolean isFunctional(OWLDataProperty arg0) throws OWLReasonerException {
