@@ -1,6 +1,39 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * This file is part of TrOWL.
+ *
+ * Foobar is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Foobar is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with TrOWL.  If not, see <http://www.gnu.org/licenses/>. 
+ *
+ * Copyright 2010 University of Aberdeen
+ */
+
+/*
+ * This file is part of Foobar.
+ *
+ * Foobar is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Foobar is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright 2010 University of Aberdeen
  */
 package eu.trowl.owl;
 
@@ -135,7 +168,6 @@ public interface Reasoner extends OWLReasoner {
      * @return
      */
 //    public Set<OWLDescription> getSubClasses(OWLDescription c);
-
     /**
      *
      * @param c
@@ -191,10 +223,15 @@ public interface Reasoner extends OWLReasoner {
      * @return
      */
     public Set<OWLAxiom> justifySatisfiable(OWLDescription c);
+
     public Set<Set<OWLAxiom>> justifySatisfiableAll(OWLDescription c);
+
     public Set<OWLAxiom> justifyInconsistent();
+
     public Set<Set<OWLAxiom>> justifyInconsistentAll();
+
     public Set<OWLAxiom> justify(OWLAxiom ax);
+
     public Set<Set<OWLAxiom>> justifyAll(OWLAxiom ax);
 
     /**
@@ -208,7 +245,9 @@ public interface Reasoner extends OWLReasoner {
      * @return
      */
     public OWLOntologyManager getManager();
+
     public OWLDataFactory getDataFactory();
+
     public Object getUnderlyingReasoner();
     /* ADD NEW:
      * addClass(OwlNamedClass))
