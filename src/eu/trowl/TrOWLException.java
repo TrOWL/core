@@ -17,11 +17,6 @@
  * Copyright 2010 University of Aberdeen
  */
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package eu.trowl;
 
 /**
