@@ -28,7 +28,7 @@ package eu.trowl.owl;
  *
  * @author ed
  */
-class NotExpressibleException extends ReasonerException {
+public class NotExpressibleException extends ReasonerException {
 
     public NotExpressibleException(String string) {
         super(string);

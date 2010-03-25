@@ -23,6 +23,7 @@
  */
 package eu.trowl.owl;
 
+import eu.trowl.owl.quill.QLReasoner;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;

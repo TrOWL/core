@@ -23,10 +23,16 @@
  */
 package eu.trowl.owl;
 
+import eu.trowl.util.Types;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
+import org.semanticweb.owl.model.OWLClass;
+import org.semanticweb.owl.model.OWLDataProperty;
 import org.semanticweb.owl.model.OWLIndividual;
+import org.semanticweb.owl.model.OWLObjectProperty;
+import org.semanticweb.owl.model.OWLOntology;
+import org.semanticweb.owl.model.OWLOntologyManager;
 
 /**
  *
@@ -34,10 +40,18 @@ import org.semanticweb.owl.model.OWLIndividual;
  */
 public abstract class ReasonerBase implements Reasoner {
     protected boolean isClassified = false;
+    protected OWLOntologyManager manager;
+    protected Set<OWLOntology> ontologies;
+    protected Set<OWLOntology> groundOntologies; // these are the ontologies explicitly loaded, not including imports
     protected Logger log;
 
     public ReasonerBase() {
         log = Logger.getLogger(this.getClass().getName());
+    }
+
+    protected void _init() {
+        ontologies = Types.newSet();
+        groundOntologies = Types.newSet();
     }
 
     public boolean isClassified() {
@@ -50,6 +64,38 @@ public abstract class ReasonerBase implements Reasoner {
         Set<T> out = new HashSet<T>();
         for (Set<T> candidate : in) {
             out.addAll(candidate);
+        }
+        return out;
+    }
+
+    public Set<OWLClass> getClasses() {
+        Set<OWLClass> out = Types.newSet();
+        for (OWLOntology o: ontologies) {
+            out.addAll(o.getReferencedClasses());
+        }
+        return out;
+    }
+
+    public Set<OWLObjectProperty> getObjectProperties() {
+        Set<OWLObjectProperty> out = Types.newSet();
+        for (OWLOntology o: ontologies) {
+            out.addAll(o.getReferencedObjectProperties());
+        }
+        return out;
+    }
+
+    public Set<OWLDataProperty> getDataProperties() {
+        Set<OWLDataProperty> out = Types.newSet();
+        for (OWLOntology o: ontologies) {
+            out.addAll(o.getReferencedDataProperties());
+        }
+        return out;
+    }
+
+    public Set<OWLIndividual> getIndividuals() {
+        Set<OWLIndividual> out = Types.newSet();
+        for (OWLOntology o: ontologies) {
+            out.addAll(o.getReferencedIndividuals());
         }
         return out;
     }

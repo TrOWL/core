@@ -23,6 +23,7 @@
  */
 package eu.trowl.loader;
 
+import eu.trowl.owl.quill.QLReasoner;
 import eu.trowl.owl.*;
 
 /**

@@ -17,24 +17,6 @@
  * Copyright 2010 University of Aberdeen
  */
 
-/*
- * This file is part of Foobar.
- *
- * Foobar is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Foobar is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright 2010 University of Aberdeen
- */
 package eu.trowl.owl;
 
 import eu.trowl.db.DB;
@@ -43,6 +25,7 @@ import org.semanticweb.owl.inference.OWLReasoner;
 import org.semanticweb.owl.model.OWLAxiom;
 import org.semanticweb.owl.model.OWLClass;
 import org.semanticweb.owl.model.OWLDataFactory;
+import org.semanticweb.owl.model.OWLDataProperty;
 import org.semanticweb.owl.model.OWLDescription;
 import org.semanticweb.owl.model.OWLIndividual;
 import org.semanticweb.owl.model.OWLObjectProperty;
@@ -102,27 +85,18 @@ public interface Reasoner extends OWLReasoner {
     public void storeNegative(DB repository);
 
     /**
-     * Check if the ontology currently loaded into the reasoner is consistent
+     * Check if the ontology currently loaded into the reasoner is allConsistent
      *
-     * @return true if the ontology is consistent
+     * @return true if the ontology is allConsistent
      */
-    public boolean consistent();
+    public boolean allConsistent();
 
     /**
-     * Check if all named classes in the ontology are consistent
+     * Check if all named classes in the ontology are allConsistent
      *
      * @return true if all named classes in the ontology are satisfiable
      */
     public boolean allSatisfiable();
-
-    /**
-     * Check if a particular named class in the ontology loaded into the
-     * reasoner is satisfiable.
-     *
-     * @param c a named class which is to be checked for satisfiability
-     * @return true iff the class is satisfiable
-     */
-    public boolean isSatisfiable(OWLDescription c);
 
     /**
      * Get a set of all unsatisfiable named classes in the ontology.
@@ -140,50 +114,13 @@ public interface Reasoner extends OWLReasoner {
 
     /**
      *
-     * @param c
-     * @return
-     */
-    public Set<OWLIndividual> getDirectInstances(OWLDescription c);
-
-    /**
-     *
-     * @param c
-     * @return
-     */
-    public Set<OWLIndividual> getInstances(OWLDescription c);
-
-    public Set<OWLClass> classifyIndividual(OWLIndividual i);
-
-    /**
-     *
-     * @param superclass
-     * @param subclass
-     * @return
-     */
-    public boolean subsumes(OWLClass superclass, OWLClass subclass);
-
-    /**
-     *
-     * @param c
-     * @return
-     */
-//    public Set<OWLDescription> getSubClasses(OWLDescription c);
-    /**
-     *
-     * @param c
-     * @return
-     */
-    public Set<OWLClass> getDirectSubClasses(OWLDescription c);
-
-    /**
-     *
      */
     public void reload();
 
     /**
      * Close a particular named class under local closed world view. This means
      * that the reasoner will not create anonymous instances of this class to
-     * maintain a consistent ontology.
+     * maintain a allConsistent ontology.
      *
      * @param c A named class to close
      */
@@ -192,7 +129,7 @@ public interface Reasoner extends OWLReasoner {
     /**
      * Close a particular named class, and all its subclasses under local closed
      * world view. This means that the reasoner will not create anonymous
-     * instances of this class to maintain a consistent ontology.
+     * instances of this class to maintain a allConsistent ontology.
      *
      * @param c A named which is the parent of the subtree of the TBox you wish
      * to close
@@ -202,7 +139,7 @@ public interface Reasoner extends OWLReasoner {
     /**
      * Close a particular named property under local closed world view. This means
      * that the reasoner will not create anonymous instances of this property to
-     * maintain a consistent ontology.
+     * maintain a allConsistent ontology.
      *
      * @param p A named property to close
      */
@@ -211,7 +148,7 @@ public interface Reasoner extends OWLReasoner {
     /**
      * Close a particular named property, and all its subproperties under local closed
      * world view. This means that the reasoner will not create anonymous
-     * instances of these properties to maintain a consistent ontology.
+     * instances of these properties to maintain a allConsistent ontology.
      *
      * @param p
      */
@@ -249,6 +186,14 @@ public interface Reasoner extends OWLReasoner {
     public OWLDataFactory getDataFactory();
 
     public Object getUnderlyingReasoner();
+
+    Set<OWLClass> getClasses();
+
+    Set<OWLDataProperty> getDataProperties();
+
+    Set<OWLIndividual> getIndividuals();
+
+    Set<OWLObjectProperty> getObjectProperties();
     /* ADD NEW:
      * addClass(OwlNamedClass))
      * addIndividual(class, individual)

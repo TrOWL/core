@@ -30,7 +30,7 @@ import org.semanticweb.owl.inference.OWLReasonerException;
  *
  * @author ed
  */
-class ReasonerException extends OWLReasonerException {
+public class ReasonerException extends OWLReasonerException {
 
     public ReasonerException(ReasonerException ex) {
         super (ex);

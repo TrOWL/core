@@ -270,15 +270,6 @@ public class ReasonerProxy extends ReasonerBase {
         }
     }
 
-    public boolean subsumes(OWLClass superclass, OWLClass subclass) {
-        try {
-            return use.subsumes(superclass, subclass);
-        } catch (UnsupportedOperationException ex) {
-                promote(use);
-                return this.subsumes(superclass, subclass);            
-        }
-    }
-
     public void storeNegative(DB repository) {
         use.storeNegative(repository);
     }
@@ -312,28 +303,11 @@ public class ReasonerProxy extends ReasonerBase {
         return use.justifySatisfiable(c);
     }
 
-    public boolean isSatisfiable(OWLDescription c) {
-        return use.isSatisfiable(c);
-    }
-
     public Set<OWLClass> getUnsatisfiable() {
         return use.getUnsatisfiable();
     }
-
-    public Set<OWLIndividual> getInstances(OWLDescription c) {
-        return use.getInstances(c);
-    }
-
-    public Set<OWLClass> getDirectSubClasses(OWLDescription c) {
-        return use.getDirectSubClasses(c);
-    }
-
-    public Set<OWLIndividual> getDirectInstances(OWLDescription c) {
-        return use.getDirectInstances(c);
-    }
-
-    public boolean consistent() {
-        return use.consistent();
+    public boolean allConsistent() {
+        return use.allConsistent();
     }
 
     public void closeTree(OWLClass c) {
@@ -406,7 +380,7 @@ public class ReasonerProxy extends ReasonerBase {
         return use.getUnderlyingReasoner();
     }
 
-    public Set<OWLClass> classifyIndividual(OWLIndividual i) {
-        return use.classifyIndividual(i);
+    public boolean isSatisfiable(OWLDescription arg0) throws OWLReasonerException {
+        return use.isSatisfiable(arg0);
     }
 }

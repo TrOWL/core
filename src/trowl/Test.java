@@ -5,7 +5,7 @@
 
 package trowl;
 
-import eu.trowl.owl.QLReasoner;
+import eu.trowl.owl.quill.QLReasoner;
 import eu.trowl.owl.Reasoner;
 import eu.trowl.owl.ReasonerFactory;
 import eu.trowl.query.*;
@@ -31,7 +31,7 @@ public class Test {
         ReasonerFactory rf = new ReasonerFactory();
         rf.setType(QLReasoner.class);
         Reasoner r = rf.load(new URI("file:/RO.owl"));
-        //r.consistent();
+        //r.allConsistent();
 
         for (OWLOntology o: r.getManager().getOntologies()) {
             for (OWLClass c: o.getReferencedClasses()) {

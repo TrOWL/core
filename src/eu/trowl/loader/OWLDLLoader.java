@@ -19,20 +19,18 @@
 
 package eu.trowl.loader;
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 import eu.trowl.db.*;
 
+import eu.trowl.owl.OntologyLoadException;
+import eu.trowl.owl.ReasonerFactory;
 import eu.trowl.vocab.OWLRDF;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.semanticweb.owl.apibinding.OWLManager;
+import org.semanticweb.owl.inference.OWLReasonerException;
 import org.semanticweb.owl.model.*;
-//import org.semanticweb.owl.inference.OWLReasoner;
-import org.mindswap.pellet.owlapi.Reasoner;
+import org.semanticweb.owl.inference.OWLReasoner;
 import org.semanticweb.owl.vocab.OWLRDFVocabulary;
 
 import java.util.Set;
@@ -56,7 +54,7 @@ public class OWLDLLoader extends Loader {
      */
     public static final boolean THREAD_SAFE = false;
 
-    private Reasoner reasoner;
+    private OWLReasoner reasoner;
     private OWLOntologyManager manager;
     private OWLOntology ont;
     private ArrayList<OWLClass> classes;
@@ -83,11 +81,15 @@ public class OWLDLLoader extends Loader {
             ont = manager.loadOntology(readerInput);
             nameRestrictions();
             objectProperties = new ArrayList<OWLObjectProperty>();
-            reasoner = new Reasoner(manager);
+            ReasonerFactory rf = new ReasonerFactory();
+            reasoner = rf.load(manager);
             // turn off all logging (for speed)
-            Reasoner.log.setLevel(Level.OFF);
             nothing = manager.getOWLDataFactory().getOWLNothing();
             
+        } catch (OntologyLoadException ex) {
+            LoaderInitException e = new LoaderInitException();
+            e.initCause(ex);
+            throw (e);
         } catch (URISyntaxException ex) {
             LoaderInitException e = new LoaderInitException();
             e.initCause(ex);
@@ -112,28 +114,24 @@ public class OWLDLLoader extends Loader {
      * @param completenessLevels
      */
     public void go(int completenessLevels) {
-        Set<OWLOntology> importsClosure = manager.getImportsClosure(ont);
-
-        reasoner.loadOntologies(importsClosure);
-
-        startTimer();
-
-        reasoner.classify();
-        if (!reasoner.isConsistent(ont)) {
-            //throw new Exception("Submitted ontology is not consistent");
+        try {
+            reasoner.classify();
+            if (!reasoner.isConsistent(ont)) {
+                //throw new Exception("Submitted ontology is not consistent");
+            }
+            getClasses(out, manager.getOWLDataFactory().getOWLThing());
+            getObjectProperties(out);
+            getDatatypeProperties(out);
+            getInstances(out);
+            getObjectPropertyInstances(out);
+            getDatatypePropertyInstances(out);
+            if (completenessLevels > 1) {
+                getCompleteness(completenessLevels);
+            }
+            stopTimer();
+        } catch (OWLReasonerException ex) {
+            Logger.getLogger(OWLDLLoader.class.getName()).log(Level.SEVERE, null, ex);
         }
-        getClasses(out, manager.getOWLDataFactory().getOWLThing());
-        getObjectProperties(out);
-        getDatatypeProperties(out);
-
-        getInstances(out);
-        getObjectPropertyInstances(out);
-        getDatatypePropertyInstances(out);
-
-        if (completenessLevels > 1) {
-            getCompleteness(completenessLevels);
-        }
-        stopTimer();
     }
 
     /**
@@ -179,16 +177,19 @@ public class OWLDLLoader extends Loader {
      * @param cur
      */
     public void getClasses(SQLBuilder sql, OWLClass cur) {
-
+        try {
 //        for (OWLClass c : reasoner.getClasses()) {
-        sql.createClass(cur.getURI());
-        for (Set<OWLClass> subs : reasoner.getSubClasses(cur)) {
-            for (OWLClass sub : subs) {
-                if (!sub.equals(cur) && !sub.equals(nothing)) {
-                    sql.setSubClassOf(cur.getURI(), sub.getURI());
-                    getClasses(sql, sub);
+            sql.createClass(cur.getURI());
+            for (Set<OWLClass> subs : reasoner.getSubClasses(cur)) {
+                for (OWLClass sub : subs) {
+                    if (!sub.equals(cur) && !sub.equals(nothing)) {
+                        sql.setSubClassOf(cur.getURI(), sub.getURI());
+                        getClasses(sql, sub);
+                    }
                 }
             }
+        } catch (OWLReasonerException ex) {
+            Logger.getLogger(OWLDLLoader.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -196,7 +197,11 @@ public class OWLDLLoader extends Loader {
      *
      */
     public void finish() {
-        reasoner.dispose();
+        try {
+            reasoner.dispose();
+        } catch (OWLReasonerException ex) {
+            Logger.getLogger(OWLDLLoader.class.getName()).log(Level.SEVERE, null, ex);
+        }
         out.storePaths();
         out.rebuildIndices();
         out.close();
@@ -208,11 +213,15 @@ public class OWLDLLoader extends Loader {
      */
     public void getObjectProperties(SQLBuilder sql) {
         for (OWLObjectProperty p : ont.getReferencedObjectProperties()) {
-            sql.createProperty(p.getURI());
-            for (Set<OWLObjectProperty> subs : reasoner.getSubProperties(p)) {
-                for (OWLObjectProperty sub : subs) {
-                    sql.setSubPropertyOf(p.getURI(), sub.getURI());
+            try {
+                sql.createProperty(p.getURI());
+                for (Set<OWLObjectProperty> subs : reasoner.getSubProperties(p)) {
+                    for (OWLObjectProperty sub : subs) {
+                        sql.setSubPropertyOf(p.getURI(), sub.getURI());
+                    }
                 }
+            } catch (OWLReasonerException ex) {
+                Logger.getLogger(OWLDLLoader.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -223,19 +232,27 @@ public class OWLDLLoader extends Loader {
      */
     public void getDatatypeProperties(SQLBuilder sql) {
         for (OWLDataProperty p : ont.getReferencedDataProperties()) {
-            sql.createProperty(p.getURI());
-            for (Set<OWLDataProperty> subs : reasoner.getSubProperties(p)) {
-                for (OWLDataProperty sub : subs) {
-                    sql.setSubPropertyOf(p.getURI(), sub.getURI());
+            try {
+                sql.createProperty(p.getURI());
+                for (Set<OWLDataProperty> subs : reasoner.getSubProperties(p)) {
+                    for (OWLDataProperty sub : subs) {
+                        sql.setSubPropertyOf(p.getURI(), sub.getURI());
+                    }
                 }
+            } catch (OWLReasonerException ex) {
+                Logger.getLogger(OWLDLLoader.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
 
     private void getInstances(SQLBuilder sql) {
         for (OWLClass c : reasoner.getClasses()) {
-            for (OWLIndividual i : reasoner.getIndividuals(c, true)) {
-                sql.createIndividual(i.getURI(), c.getURI());
+            try {
+                for (OWLIndividual i : reasoner.getIndividuals(c, true)) {
+                    sql.createIndividual(i.getURI(), c.getURI());
+                }
+            } catch (OWLReasonerException ex) {
+                Logger.getLogger(OWLDLLoader.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }

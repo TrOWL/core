@@ -21,8 +21,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package eu.trowl.owl;
+package eu.trowl.owl.quill;
 
+import eu.trowl.owl.*;
 import eu.trowl.util.*;
 import java.util.HashSet;
 import java.util.Map;
