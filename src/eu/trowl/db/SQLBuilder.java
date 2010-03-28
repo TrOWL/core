@@ -411,7 +411,7 @@ public class SQLBuilder {
         //System.out.println("Rebuilding indices");
         for (String q : Queries.CREATE_INDEXES) {
             try {
-                System.out.println(q);
+                //System.out.println(q);
                 out.db.execute(q);
             } catch (SQLException ex) {
                 System.out.println("Could not create index");

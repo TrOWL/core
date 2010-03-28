@@ -22,6 +22,7 @@ package eu.trowl.loader;
 import eu.trowl.db.*;
 
 import eu.trowl.owl.OntologyLoadException;
+import eu.trowl.owl.Reasoner;
 import eu.trowl.owl.ReasonerFactory;
 import eu.trowl.vocab.OWLRDF;
 import java.net.URISyntaxException;
@@ -54,7 +55,7 @@ public class OWLDLLoader extends Loader {
      */
     public static final boolean THREAD_SAFE = false;
 
-    private OWLReasoner reasoner;
+    private Reasoner reasoner;
     private OWLOntologyManager manager;
     private OWLOntology ont;
     private ArrayList<OWLClass> classes;
@@ -123,8 +124,7 @@ public class OWLDLLoader extends Loader {
             getObjectProperties(out);
             getDatatypeProperties(out);
             getInstances(out);
-            getObjectPropertyInstances(out);
-            getDatatypePropertyInstances(out);
+            getPropertyInstances(out);
             if (completenessLevels > 1) {
                 getCompleteness(completenessLevels);
             }
@@ -257,19 +257,6 @@ public class OWLDLLoader extends Loader {
         }
     }
 
-    private void getObjectPropertyInstances(SQLBuilder sql) {
-        for (OWLObjectProperty predicate : reasoner.getObjectProperties()) {
-            Map<OWLIndividual, Set<OWLIndividual>> propertyMap = reasoner.getObjectPropertyAssertions(predicate);
-
-            for (Map.Entry<OWLIndividual, Set<OWLIndividual>> line : propertyMap.entrySet()) {
-                OWLIndividual subject = line.getKey();
-                for (OWLIndividual object : line.getValue()) {
-                    sql.createObjectPropertyInstance(subject.getURI(), predicate.getURI(), object.getURI());
-                }
-            }
-        }
-    }
-
     private void getObjectPropertyInstancesNoReasoner(SQLBuilder sql) throws Exception {
         for (OWLIndividual subject : ont.getReferencedIndividuals()) {
             for (OWLObjectPropertyAssertionAxiom a : ont.getObjectPropertyAssertionAxioms(subject)) {
@@ -281,15 +268,29 @@ public class OWLDLLoader extends Loader {
         }
     }
 
-    private void getDatatypePropertyInstances(SQLBuilder sql) {
-        for (OWLDataProperty predicate : reasoner.getDataProperties()) {
-            Map<OWLIndividual, Set<OWLConstant>> propertyMap = reasoner.getDataPropertyAssertions(predicate);
+    private void getPropertyInstances(SQLBuilder sql) {
+        for (OWLIndividual subject : reasoner.getIndividuals()) {
 
-            for (Map.Entry<OWLIndividual, Set<OWLConstant>> line : propertyMap.entrySet()) {
-                OWLIndividual subject = line.getKey();
-                for (OWLConstant object : line.getValue()) {
-                    sql.createDatatypePropertyInstance(subject.getURI(), predicate.getURI(), object.getLiteral(), "");
+            try {
+                Map<OWLDataProperty, Set<OWLConstant>> propertyMap = reasoner.getDataPropertyRelationships(subject);
+                for (OWLDataProperty predicate : propertyMap.keySet()) {
+                    for (OWLConstant object : propertyMap.get(predicate)) {
+                        sql.createDatatypePropertyInstance(subject.getURI(), predicate.getURI(), object.getLiteral(), "");
+                    }
                 }
+            } catch (OWLReasonerException ex) {
+                //log.info(ex);
+            }
+
+            try {
+                Map<OWLObjectProperty, Set<OWLIndividual>> propertyMap = reasoner.getObjectPropertyRelationships(subject);
+                for (OWLObjectProperty predicate : propertyMap.keySet()) {
+                    for (OWLIndividual object : propertyMap.get(predicate)) {
+                        sql.createObjectPropertyInstance(subject.getURI(), predicate.getURI(), object.getURI());
+                    }
+                }
+            } catch (OWLReasonerException ex) {
+                //log.info(ex);
             }
         }
     }
