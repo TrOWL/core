@@ -1,12 +1,12 @@
 /*
  * This file is part of TrOWL.
  *
- * Foobar is free software: you can redistribute it and/or modify
+ * TrOWL is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Foobar is distributed in the hope that it will be useful,
+ * TrOWL is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
@@ -24,9 +24,11 @@
 package eu.trowl.owl;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import eu.trowl.util.Types;
 
 /**
  *
@@ -39,9 +41,9 @@ public class Node<T> implements Set<T> {
 //    private Set<T> hiddenContents;
 
     public Node() {
-        children = new HashSet<Node<T>>();
-        parents = new HashSet<Node<T>>();
-        contents = new HashSet<T>();
+        children = Types.newSet();
+        parents = Types.newSet();
+        contents = Types.newSet();
  //       hiddenContents = new HashSet<T>();
     }
 
@@ -100,8 +102,8 @@ public class Node<T> implements Set<T> {
 
     @Override
     public String toString() {
-        return "hello";
-//        return contents.toString();
+//        return "hello";
+        return contents.toString();
     }
 
     public Set<T> asSet() {
@@ -117,17 +119,21 @@ public class Node<T> implements Set<T> {
     }
 
     public boolean addChild(Node<T> n) {
-        return getChildren().add(n);
+        if (children.add(n)) {
+            n.parents.add(this);
+            return true;
+        }
+        return false;
     }
 
     public Set<Node<T>> getChildren() {
-        return children;
+        return Collections.unmodifiableSet(children);
     }
 
     public Set<Node<T>> getAscendants() {
         Set<Node<T>> ascendants = new HashSet<Node<T>>();
         getDescendants(ascendants, this);
-        return ascendants;
+        return Collections.unmodifiableSet(ascendants);
     }
 
     private void getAscendants(Set<Node<T>> ascendants, Node<T> current) {
@@ -141,7 +147,7 @@ public class Node<T> implements Set<T> {
     public Set<Node<T>> getDescendants() {
         Set<Node<T>> descendants = new HashSet<Node<T>>();
         getDescendants(descendants, this);
-        return descendants;
+        return Collections.unmodifiableSet(descendants);
     }
 
     private void getDescendants(Set<Node<T>> descendants, Node<T> current) {
@@ -154,7 +160,7 @@ public class Node<T> implements Set<T> {
     }
 
     public Set<Node<T>> getParents() {
-        return parents;
+        return Collections.unmodifiableSet(parents);
     }
 
     public boolean hasDescendant(Node<T> candidate) {

@@ -1,12 +1,12 @@
 /*
  * This file is part of TrOWL.
  *
- * Foobar is free software: you can redistribute it and/or modify
+ * TrOWL is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Foobar is distributed in the hope that it will be useful,
+ * TrOWL is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
@@ -89,64 +89,66 @@ public class QLReasoner extends QLBase implements Reasoner {
     private Boolean consistent = null;
 
     private void loadTBox() {
-        thing = getNode(manager.getOWLDataFactory().getOWLClass(OWLRDF.THING));
-        nothing = getNode(manager.getOWLDataFactory().getOWLClass(OWLRDF.NOTHING));
+        thing = getNode(manager.getOWLDataFactory().getOWLThing());
+        nothing = getNode(manager.getOWLDataFactory().getOWLNothing());
 
         for (OWLOntology ont : onts) {
             for (OWLSubClassAxiom ax : ont.getAxioms(AxiomType.SUBCLASS)) {
                 OWLDescription lhs = ax.getSubClass();
                 OWLDescription rhs = ax.getSuperClass();
 
-                Set<OWLClass> subclasses;
-                OWLClass superclass;
+                OWLClass subclass;
+                Set<OWLClass> superclasses;
 
                 try {
                     if (!lhs.isAnonymous()) {
-                        superclass = lhs.asOWLClass();
+                        subclass = lhs.asOWLClass();
                     } else if (lhs.getClass().isAssignableFrom(OWLObjectSomeRestriction.class)) {
-                        superclass = name(lhs);
+                        subclass = name(lhs);
                     } else {
                         continue;
                     }
 
-                    Node<OWLClass> superNode = getNode(superclass);
+                    Node<OWLClass> subNode = getNode(subclass);
 
                     if (isQL(rhs)) {
                         // rhs has to be intersection of some classes, negation of some class, or equivalent object property
                         if (rhs.getClass().isAssignableFrom(OWLObjectIntersectionOf.class)) {
                             for (OWLClass c : flattenIntersection((OWLObjectIntersectionOf) rhs)) {
-                                Node<OWLClass> subNode = getNode(c);
-                                superNode.addChild(subNode);
+                                Node<OWLClass> supNode = getNode(c);
+                                supNode.addChild(subNode);
                             }
                         } else if (rhs.getClass().isAssignableFrom(OWLObjectSomeRestriction.class)) {
-                            Node<OWLClass> subNode = getNode(name(rhs));
-                            superNode.addChild(subNode);
+                            Node<OWLClass> supNode = getNode(name(rhs));
+                            supNode.addChild(subNode);
                         } else if (rhs.getClass().isAssignableFrom(OWLObjectComplementOf.class)) {
                             OWLObjectComplementOf comp = (OWLObjectComplementOf) rhs;
                             OWLDescription of = comp.getOperand();
 
                             if (of.isAnonymous()) {
                                 if (of.getClass().isAssignableFrom(OWLObjectSomeRestriction.class)) {
-                                    addDisjunction(superclass, name((OWLObjectSomeRestriction) of));
+                                    addDisjunction(subclass, name((OWLObjectSomeRestriction) of));
                                 } else {
                                     //System.out.println("Dropped a disjoint axiom");
                                 }
                             } else {
-                                addDisjunction(superclass, of.asOWLClass());
+                                addDisjunction(subclass, of.asOWLClass());
                             }
                         } else if (!rhs.isAnonymous()) {
-                            Node<OWLClass> subNode = getNode(rhs.asOWLClass());
+                            Node<OWLClass> superNode = getNode(rhs.asOWLClass());
                             superNode.addChild(subNode);
                         }
                     }
                 } catch (NotExpressibleException ex) {
-                    log.info(ex.getMessage());
+                    //log.info(ex.getMessage());
                 }
             }
         }
 
         for (Node<OWLClass> node : classNodes) {
-            if (node.getParents().isEmpty()) {
+            System.out.print(node);
+            System.out.println(node.getParents());
+            if (node.getParents().isEmpty() && !node.contains(factory.getOWLThing())) {
                 thing.addChild(node);
             }
         }
@@ -157,7 +159,13 @@ public class QLReasoner extends QLBase implements Reasoner {
         topDataProperty = getNode(manager.getOWLDataFactory().getOWLDataProperty(OWLRDF.TOP_DATA_PROPERTY));
 
         for (OWLOntology ont : onts) {
+            for (OWLObjectProperty p: ont.getReferencedObjectProperties()) {
+                getNode(p);
+            }
 
+            for (OWLDataProperty p: ont.getReferencedDataProperties()) {
+                getNode(p);
+            }
             for (OWLObjectSubPropertyAxiom ax : ont.getAxioms(AxiomType.SUB_OBJECT_PROPERTY)) {
                 try {
                     OWLObjectProperty superprop;
@@ -349,7 +357,6 @@ public class QLReasoner extends QLBase implements Reasoner {
                     if (a.hasDescendant(b) && b.hasDescendant(a)) {
                         Node.mergeNodes(a, b);
                     }
-
                 }
             }
         }
@@ -362,7 +369,6 @@ public class QLReasoner extends QLBase implements Reasoner {
                     if (a.hasDescendant(b) && b.hasDescendant(a)) {
                         Node.mergeNodes(a, b);
                     }
-
                 }
             }
         }
@@ -379,21 +385,6 @@ public class QLReasoner extends QLBase implements Reasoner {
                     flattenIntersection(
                             (OWLObjectIntersectionOf) c, bag);
                 } else if (in.getClass().isAssignableFrom(OWLObjectSomeRestriction.class)) {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                     try {
                         bag.add(name((OWLObjectSomeRestriction) in));
                     } catch (NotExpressibleException ex) {
@@ -577,18 +568,11 @@ public class QLReasoner extends QLBase implements Reasoner {
 
     public Set<OWLClass> getUnsatisfiable() {
         try {
-            return flattenSetOfSets(getSubClasses(factory.getOWLNothing()));
+            Set<OWLClass> out = flattenSetOfSets(getSubClasses(factory.getOWLNothing()));
+            out.add(factory.getOWLNothing());
+            return out;
         } catch (OWLReasonerException ex) {
             Logger.getLogger(QLReasoner.class.getName()).log(Level.SEVERE, null, ex);
-
-
-
-
-
-
-
-
-
             return null;
         }
     }
@@ -731,7 +715,7 @@ public class QLReasoner extends QLBase implements Reasoner {
     }
 
     public boolean isSatisfiable(OWLDescription c) {
-        return true;
+        return !nothing.contains(c.asOWLClass());
     }
 
     /**
