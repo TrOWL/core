@@ -80,6 +80,7 @@ public abstract class QLBase extends ReasonerBase {
     protected Node<OWLDataProperty> topDataProperty;
     protected Map<OWLClass, Node<OWLClass>> classNodeMap;
     protected Map<OWLObjectProperty, Node<OWLObjectProperty>> objectPropertyNodeMap;
+    protected Map<Node<OWLObjectProperty>, Set<Node<OWLObjectProperty>>> objectPropertyInverse;
     protected Map<OWLDataProperty, Node<OWLDataProperty>> dataPropertyNodeMap;
     protected Set<Node<OWLClass>> classNodes;
     protected Set<Node<OWLObjectProperty>> objectPropertyNodes;

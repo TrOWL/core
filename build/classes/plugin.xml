@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+
+<plugin>
+
+    <extension point="org.protege.editor.owl.inference.reasonerfactory"
+               id="trowl-factory">
+        <name value="TrOWL"/>
+        <class value="eu.trowl.owl.ReasonerFactory"/>
+    </extension>
+
+</plugin>
