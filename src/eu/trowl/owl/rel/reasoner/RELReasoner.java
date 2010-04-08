@@ -1,25 +1,6 @@
-/*
- * This file is part of TrOWL.
- *
- * TrOWL is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * TrOWL is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with TrOWL .  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright 2010 University of Aberdeen
- */
-
 package eu.trowl.owl.rel.reasoner;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -46,10 +27,13 @@ import eu.trowl.owl.rel.factory.ELCOntologyFactory;
 import eu.trowl.owl.rel.model.Atomic;
 import eu.trowl.owl.rel.model.Basic;
 import eu.trowl.owl.rel.model.Description;
+import eu.trowl.owl.rel.model.ELCQEntry;
 import eu.trowl.owl.rel.model.ELCQOntology;
+import eu.trowl.owl.rel.model.Implies;
 import eu.trowl.owl.rel.model.Individual;
 import eu.trowl.owl.rel.model.Role;
 import eu.trowl.owl.rel.model.Singleton;
+import eu.trowl.owl.rel.model.Some;
 
 
 /** 
@@ -61,7 +45,6 @@ public class RELReasoner implements OWLReasoner{
 	private final OWLOntologyManager manager;
 	private final OWLDataFactory factory;
 	private ELCOntologyFactory elcfactory = null;
-	public ArrayList<OWLIndividual> inconsistentIndividuals = new ArrayList<OWLIndividual>();
 	ELCClassifier classifier = new ELCClassifier();
 	private Set<OWLOntology> ontologies = null;
 
@@ -102,47 +85,13 @@ public class RELReasoner implements OWLReasoner{
 		return null;
 	}
 
-	public Individual getIndividual(OWLIndividual indi){
+	private Individual getIndividual(OWLIndividual indi){
 		if(elcontology.individualID.get(indi)!=null)
 			return elcontology.individuals.get(elcontology.individualID.get(indi));
 		return null;
 	}
 
 
-	public HashSet<OWLClass> getsubsumer(OWLClass concept) {
-		// TODO Auto-generated method stub
-		HashSet<OWLClass> subsumers = new HashSet<OWLClass>();
-		Atomic elpconcept = (Atomic) elcontology.descriptions.get(elcontology.classID.get(concept));
-		Atomic bot = (Atomic) elcontology.descriptions.get(0);
-		if(elpconcept.subsumers.contains(bot)){
-			for(Basic subsumer:elcontology.allconcepts)
-				if(subsumer.original && subsumer instanceof Atomic)
-					subsumers.add(factory.getOWLClass(((Atomic) subsumer).uri));
-			subsumers.add(factory.getOWLNothing());
-		}
-		else
-			for(Basic subsumer:elpconcept.subsumers)
-				if(subsumer.original && subsumer instanceof Atomic)
-					subsumers.add(factory.getOWLClass(((Atomic) subsumer).uri));
-		return subsumers;
-	}
-
-	public HashSet<OWLClass> getClasses(OWLIndividual individual){
-		HashSet<OWLClass> classes = new HashSet<OWLClass>();
-		Individual indi = elcontology.individuals.get(elcontology.individualID.get(individual));
-		Atomic bot = (Atomic) elcontology.descriptions.get(0);
-		Singleton single = indi.singleton;
-		if(single.subsumers.contains(bot)){
-			for(Basic classifier:elcontology.allconcepts)
-				if(classifier.original && classifier instanceof Atomic)
-					classes.add(factory.getOWLClass(((Atomic) classifier).uri));				
-			classes.add(factory.getOWLNothing());
-		}
-		else for(Basic classifier:single.subsumers)
-			if(classifier.original && classifier instanceof Atomic)
-				classes.add(factory.getOWLClass(((Atomic) classifier).uri));
-		return classes;
-	}
 
 	public HashSet<OWLIndividual> getIndividuals(OWLClass concept){
 		HashSet<OWLIndividual> individuals = new HashSet<OWLIndividual>();
@@ -183,20 +132,6 @@ public class RELReasoner implements OWLReasoner{
 	}
 
 
-	public int getrelations(OWLObjectPropertyExpression property) {
-		// TODO Auto-generated method stub
-		int num = 0;
-		Role role = elcontology.roles.get(elcontology.roleID.get(property));
-		for(Entry<Basic, HashSet<Basic>> entry:role.Relations.entrySet())
-			if(entry.getKey() instanceof Singleton)
-				for(Basic basic:entry.getValue())
-					if(basic instanceof Singleton)
-						num++;
-		return num;
-	}
-
-
-
 	@Override
 	public boolean isConsistent(OWLOntology arg0) throws OWLReasonerException {
 		// TODO Auto-generated method stub
@@ -208,6 +143,7 @@ public class RELReasoner implements OWLReasoner{
 		// TODO Auto-generated method stub
 		classifier.ontology = elcontology;
 		classifier.tBoxCompletion();
+		elcontology.classified = true;
 	}
 
 	@Override
@@ -244,22 +180,25 @@ public class RELReasoner implements OWLReasoner{
 	@Override
 	public boolean isDefined(OWLIndividual arg0) throws OWLReasonerException {
 		// TODO Auto-generated method stub
-		if(getIndividual(arg0) != null)
-			return true;
-		return false;
+		throw new UnsupportedOperationException();
+//		if(getIndividual(arg0) != null)
+//			return true;
+//		return false;
 	}
 
 	@Override
 	public boolean isRealised() throws OWLReasonerException {
 		// TODO Auto-generated method stub
-		return false;
 		// todo
+		throw new UnsupportedOperationException();
+//		return false;
 	}
 
 	@Override
 	public void realise() throws OWLReasonerException {
 		// TODO Auto-generated method stub
 		// todo
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -276,12 +215,12 @@ public class RELReasoner implements OWLReasoner{
 			{
 				HashSet<Basic> subsumers = new HashSet<Basic>();
 				for(Basic sub:((Atomic)desc).subsumers)
+					if(!((Atomic)desc).equivalence.contains(sub) && sub.original)
 					subsumers.add(sub);
 				while(subsumers.size()>0)
 				{
 					Basic sub = subsumers.iterator().next();
 					subsumers.removeAll(sub.equivalence);
-					subsumers.remove(sub);
 					HashSet<OWLClass> ancestor = new HashSet<OWLClass>();
 					for(Basic eq:sub.equivalence)
 						if(eq instanceof Atomic && ((Atomic)eq).original)
@@ -308,7 +247,7 @@ public class RELReasoner implements OWLReasoner{
 			{
 				HashSet<Basic> subsumees = new HashSet<Basic>();
 				for(Basic sub:elcontology.allconcepts)
-					if(sub.subsumers.contains((Atomic)desc))
+					if(sub.subsumers.contains((Atomic)desc) && !sub.equivalence.contains((Atomic)desc))
 						subsumees.add(sub);
 				while(subsumees.size()>0)
 				{
@@ -346,7 +285,12 @@ public class RELReasoner implements OWLReasoner{
 	public Set<OWLClass> getInconsistentClasses() throws OWLReasonerException {
 		// TODO Auto-generated method stub
 		// todo
-		return null;
+		Set<OWLClass> toreturn = new HashSet<OWLClass>();
+		Basic bot = (Basic) elcontology.descriptions.get(0);
+		for(Basic concept:bot.equivalence)
+			if(concept instanceof Atomic)
+				toreturn.add(factory.getOWLClass(((Atomic)concept).uri));
+		return toreturn;
 	}
 
 	@Override
@@ -362,8 +306,20 @@ public class RELReasoner implements OWLReasoner{
 				Atomic atom = (Atomic)desc;
 				HashSet<Basic> subsumees = new HashSet<Basic>();
 				for(Basic sub:elcontology.allconcepts)
-					if(!subsumees.contains(sub) && sub.subsumers.contains(atom) && sub.subsumers.size() == atom.subsumers.size()+1)
+				{
+					if(!atom.equivalence.contains(sub) && !subsumees.contains(sub) && sub.subsumers.contains(atom))
+					{
+						boolean toadd = true;
+						for(Basic subsub:sub.subsumers)
+							if(subsub.original && !sub.equivalence.contains(subsub) && !atom.equivalence.contains(subsub) && subsub.subsumers.contains(atom))
+							{
+								toadd = false;
+								break;
+							}
+						if(toadd)
 						subsumees.addAll(sub.equivalence);
+					}
+				}
 				while(subsumees.size()>0)
 				{
 					Basic sub = subsumees.iterator().next();
@@ -395,8 +351,20 @@ public class RELReasoner implements OWLReasoner{
 				Atomic atom = (Atomic)desc;
 				HashSet<Basic> subsumers = new HashSet<Basic>();
 				for(Basic sub:atom.subsumers)
-					if(!subsumers.contains(sub) && sub.subsumers.size()+1 == atom.subsumers.size())
-						subsumers.addAll(sub.equivalence);
+				{
+					if(sub.original && !atom.equivalence.contains(sub) && !subsumers.contains(sub))
+					{
+						boolean toadd = true;
+						for(Basic sub2:atom.subsumers)
+							if(sub.original && !atom.equivalence.contains(sub2) && !sub.equivalence.contains(sub2) && sub2.subsumers.contains(sub))
+							{
+								toadd =false;
+								break;
+							}
+						if(toadd)
+							subsumers.addAll(sub.equivalence);
+					}
+				}
 				while(subsumers.size()>0)
 				{
 					Basic sub = subsumers.iterator().next();
@@ -419,9 +387,11 @@ public class RELReasoner implements OWLReasoner{
 		// TODO Auto-generated method stub
 		// now only work for named concepts
 		// todo
-		OWLSubClassAxiom axiom1 = factory.getOWLSubClassAxiom(arg0, arg1);
-		OWLSubClassAxiom axiom2 = factory.getOWLSubClassAxiom(arg1, arg0);
-		return entail(axiom1) && entail(axiom2);
+		Description desc0 = getDescription(arg0);
+		Description desc1 = getDescription(arg1);
+		if(desc0 != null && desc1 != null && desc0 instanceof Basic && desc1 instanceof Basic)
+		return ((Basic)desc0).equivalence.contains((Basic)desc1);
+		return false;
 	}
 
 	@Override
@@ -448,8 +418,8 @@ public class RELReasoner implements OWLReasoner{
 	public Map<OWLDataProperty, Set<OWLConstant>> getDataPropertyRelationships(
 			OWLIndividual arg0) throws OWLReasonerException {
 		// TODO Auto-generated method stub
-		// todo
-		return null;
+		// unsupported yet
+		return new HashMap<OWLDataProperty, Set<OWLConstant>>();
 	}
 
 	@Override
@@ -460,23 +430,55 @@ public class RELReasoner implements OWLReasoner{
 		// todo
 		if(arg0 instanceof OWLClass)
 			return getIndividuals(arg0.asOWLClass());
-		return null;
+		return new HashSet<OWLIndividual>();
 	}
 
 	@Override
 	public Map<OWLObjectProperty, Set<OWLIndividual>> getObjectPropertyRelationships(
 			OWLIndividual arg0) throws OWLReasonerException {
 		// TODO Auto-generated method stub
+		// now only return partial results
 		// todo
-		return null;
+		Map<OWLObjectProperty, Set<OWLIndividual>> toreturn = new HashMap<OWLObjectProperty, Set<OWLIndividual>>();
+		Individual indi = getIndividual(arg0);
+		if(indi != null)
+		for(Role role:elcontology.roles.values())
+			if(role.original)
+			{
+				Set<OWLIndividual> roleindis = new HashSet<OWLIndividual>();
+				if(role.Relations.get(indi.singleton)!=null)
+					for(Basic basic:role.Relations.get(indi.singleton))
+						if(basic instanceof Singleton)
+						{
+							Individual indi2 = ((Singleton)basic).value;
+							if(indi2.original)
+								roleindis.add(factory.getOWLIndividual(indi2.uri));
+						}
+				if(roleindis.size() > 0)
+					toreturn.put(factory.getOWLObjectProperty(role.uri), roleindis);
+			}
+		return toreturn;
 	}
 
 	@Override
 	public Set<OWLIndividual> getRelatedIndividuals(OWLIndividual arg0,
 			OWLObjectPropertyExpression arg1) throws OWLReasonerException {
 		// TODO Auto-generated method stub
+		// now only return partial results
 		// todo
-		return null;
+		Set<OWLIndividual> toreturn = new HashSet<OWLIndividual>();
+		Individual indi = getIndividual(arg0);
+		Role role = getRole(arg1);
+		if(indi != null && role != null)
+			if(role.Relations.get(indi.singleton)!=null)
+				for(Basic basic:role.Relations.get(indi.singleton))
+					if(basic instanceof Singleton)
+					{
+						Individual indi2 = ((Singleton)basic).value;
+						if(indi2.original)
+							toreturn.add(factory.getOWLIndividual(indi2.uri));
+					}
+		return toreturn;
 	}
 
 	@Override
@@ -484,24 +486,27 @@ public class RELReasoner implements OWLReasoner{
 			OWLDataPropertyExpression arg1) throws OWLReasonerException {
 		// TODO Auto-generated method stub
 		// todo
-		return null;
+		// unsupported yet
+		return new HashSet<OWLConstant>();
 	}
 
 	//	@Override
 	public Set<Set<OWLClass>> getTypes(OWLIndividual arg0, boolean arg1)
 	throws OWLReasonerException {
 		// TODO Auto-generated method stub
+		Set<Set<OWLClass>> types = new HashSet<Set<OWLClass>>();
 		Individual indi = getIndividual(arg0);
 		if(indi == null)
-			return null;
+			return types;
 		Singleton single = indi.singleton;
-		Set<Set<OWLClass>> types = new HashSet<Set<OWLClass>>();
 		Atomic bot = (Atomic) elcontology.descriptions.get(0);
 		HashSet<Basic> classes = new HashSet<Basic>();
 		if(single.subsumers.contains(bot))
 			classes = elcontology.allconcepts;
 		else
-			classes = single.subsumers;
+			for(Basic sub:single.subsumers)
+				if(sub.original)
+					classes.add(sub);
 		while(classes.size()>0)
 		{
 			Basic sub = classes.iterator().next();
@@ -531,6 +536,12 @@ public class RELReasoner implements OWLReasoner{
 	throws OWLReasonerException {
 		// TODO Auto-generated method stub
 		// todo
+		Individual indi1 = getIndividual(arg0);
+		Role role = getRole(arg1);
+		Individual indi2 = getIndividual(arg2);
+		if(indi1 != null && indi2 != null && role!=null)
+			if(role.Relations.get(indi1.singleton) != null)
+			return role.Relations.get(indi1.singleton).contains(indi2.singleton);
 		return false;
 	}
 
@@ -653,7 +664,38 @@ public class RELReasoner implements OWLReasoner{
 	throws OWLReasonerException {
 		// TODO Auto-generated method stub
 		// todo
-		return null;
+		// now only return partial results
+		Set<Set<OWLDescription>> toreturn = new HashSet<Set<OWLDescription>>();
+		Role role = getRole(arg0);
+		if(role != null)
+		{
+			Basic top = (Basic) elcontology.descriptions.get(1);
+			if(role.somes.get(top)!=null)
+			{
+				Set<Basic> domains = new HashSet<Basic>();
+				for(ELCQEntry entry:role.somes.get(top).Ohat)
+					if(entry instanceof Implies)
+					{
+						Implies imply = (Implies) entry;
+						if(imply.lhs.size() == 0 && imply.rhs.original)
+							domains.add(imply.rhs);
+					}
+				while(domains.size()>0)
+				{
+					Basic sub = domains.iterator().next();
+					domains.removeAll(sub.equivalence);
+					HashSet<OWLDescription> type = new HashSet<OWLDescription>();
+					for(Basic eq:sub.equivalence)
+						if(eq instanceof Atomic && ((Atomic)eq).original)
+							type.add(factory.getOWLClass(((Atomic)eq).uri));							
+					if(type.size() > 0)
+						toreturn.add(type);
+				}
+
+			}
+					
+		}
+		return toreturn;
 	}
 
 	@Override
@@ -661,7 +703,8 @@ public class RELReasoner implements OWLReasoner{
 	throws OWLReasonerException {
 		// TODO Auto-generated method stub
 		// todo
-		return null;
+		// not supported yet
+		return new HashSet<Set<OWLDescription>>();
 	}
 
 	@Override
@@ -710,7 +753,7 @@ public class RELReasoner implements OWLReasoner{
 				inverse.add(inv);
 			return inverse;
 		}
-		return null;
+		return new HashSet<Set<OWLObjectProperty>>();
 	}
 
 	@Override
@@ -718,7 +761,26 @@ public class RELReasoner implements OWLReasoner{
 	throws OWLReasonerException {
 		// TODO Auto-generated method stub
 		// todo
-		return null;
+		// now only return partial results
+		Set<OWLDescription> toreturn = new HashSet<OWLDescription>();
+		Role role = getRole(arg0);
+		if(role != null)
+			for(Entry<Basic, Some> entry:role.somes.entrySet())
+				if(entry.getKey().complement instanceof Atomic && entry.getKey().complement.original)
+				{
+					Atomic range = (Atomic) entry.getKey().complement;
+					for(ELCQEntry ohat:entry.getValue().Ohat)
+						if(ohat instanceof Implies)
+						{
+							Implies imply = (Implies) ohat;
+							if(imply.lhs.size() == 0 && imply.rhs.id == 0)
+							{
+								toreturn.add(factory.getOWLClass(range.uri));
+								break;
+							}
+						}
+				}
+		return toreturn;
 	}
 
 	@Override
@@ -726,7 +788,8 @@ public class RELReasoner implements OWLReasoner{
 	throws OWLReasonerException {
 		// TODO Auto-generated method stub
 		// todo
-		return null;
+		// not supported yet
+		return new HashSet<OWLDataRange>();
 	}
 
 	@Override
@@ -913,6 +976,8 @@ public class RELReasoner implements OWLReasoner{
 	public void clearOntologies() throws OWLReasonerException {
 		// TODO Auto-generated method stub
 		// todo
+		ontologies = new HashSet<OWLOntology>();
+//		loadOntology();
 	}
 
 	@Override
