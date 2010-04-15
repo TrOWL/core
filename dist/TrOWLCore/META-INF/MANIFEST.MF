@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: TrOWL
+Bundle-SymbolicName: eu.trowl;singleton:=true
+Bundle-Category: protege
+Bundle-Description: The TrOWL plugin
+Bundle-Vendor: University of Aberdeen
+Bundle-DocURL: http://trowl.eu
+Bundle-ClassPath: .
+Import-Package: org.apache.log4j
+Bundle-Version: 1.0.0
+Bundle-Activator: org.protege.editor.core.plugin.DefaultPluginActivator
+Require-Bundle: org.protege.editor.core.application,
+ org.protege.editor.owl,
+ org.semanticweb.owl.owlapi

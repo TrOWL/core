@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+
+<plugin>
+    <extension point="org.protege.editor.owl.inference.reasonerfactory"
+               id="trowl-factory-quill">
+        <name value="TrOWL QL"/>
+        <class value="eu.trowl.owl.protege.QuillProtegeReasonerFactory"/>
+    </extension>
+<extension point="org.protege.editor.owl.inference.reasonerfactory"
+               id="trowl-factory-rel">
+        <name value="TrOWL EL"/>
+        <class value="eu.trowl.owl.protege.RELProtegeReasonerFactory"/>
+    </extension>
+</plugin>
